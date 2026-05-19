@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  <title>Merry English Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --brand-green: #58CC02;
+      --brand-green-dark: #46A300;
+      --bg: #FAFAFA;
+      --card-bg: #FFFFFF;
+      --text-primary: #1A1A1A;
+      --text-secondary: #555555;
+      --text-muted: #999999;
+      --border-placeholder: #E5E5E5;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      --radius: 24px;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      width: 100%;
+      text-align: center;
+      padding: 72px 24px 56px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--brand-green);
+      color: #fff;
+      font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 6px 18px;
+      margin-bottom: 28px;
+    }
+
+    .hero-title {
+      font-family: 'Manrope', 'Archivo Black', sans-serif;
+      font-size: clamp(2.4rem, 8vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 3vw, 1.2rem);
+      font-weight: 700;
+      color: var(--brand-green);
+      margin-bottom: 20px;
+    }
+
+    .hero-desc {
+      font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── TOOLS SECTION ── */
+    .tools-section {
+      width: 100%;
+      max-width: 560px;
+      padding: 0 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── ACTIVE CARD ── */
+    .tool-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .tool-card:active {
+      transform: translateY(0);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      line-height: 1;
+      color: var(--brand-green);
+    }
+
+    .card-title {
+      font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text-primary);
+    }
+
+    .card-desc {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .card-btn {
+      display: inline-block;
+      background: var(--brand-green);
+      color: #fff;
+      font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 16px;
+      padding: 14px 28px;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 4px;
+      transition: background 0.15s ease;
+      align-self: flex-start;
+    }
+
+    .card-btn:hover {
+      background: var(--brand-green-dark);
+    }
+
+    /* ── PLACEHOLDER CARD ── */
+    .tool-card-placeholder {
+      background: transparent;
+      border: 2px dashed var(--border-placeholder);
+      border-radius: var(--radius);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-title-placeholder {
+      font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #BBBBBB;
+    }
+
+    .card-desc-placeholder {
+      font-size: 1rem;
+      color: #CCCCCC;
+      line-height: 1.6;
+    }
+
+    .card-tag-placeholder {
+      display: inline-block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #CCCCCC;
+      background: #F0F0F0;
+      border-radius: 999px;
+      padding: 4px 14px;
+      align-self: flex-start;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 32px 24px 48px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-top: 1px solid #EFEFEF;
+      margin-top: auto;
+    }
+
+    footer strong {
+      color: var(--text-secondary);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 400px) {
+      .hero {
+        padding: 48px 16px 40px;
+      }
+
+      .tools-section {
+        padding: 0 16px 64px;
+      }
+
+      .tool-card,
+      .tool-card-placeholder {
+        padding: 24px;
+      }
+
+      .card-btn {
+        align-self: stretch;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Free AI Tools</div>
+    <h1 class="hero-title">Merry English Lab</h1>
+    <p class="hero-subtitle">by Merry 老师</p>
+    <p class="hero-desc">一个工具解决一个英语学习痛点 &middot; 完全免费</p>
+  </section>
+
+  <!-- TOOLS -->
+  <main class="tools-section">
+
+    <!-- 工具卡 1：字母快乐谷 -->
+    <a class="tool-card" href="./letters/">
+      <div class="card-icon">&#9733;</div>
+      <div class="card-title">字母快乐谷</div>
+      <div class="card-desc">26 字母笔顺示范 + AI 打分<br />跟着练，对不对立刻知道</div>
+      <div class="card-meta">适合 1&ndash;3 年级</div>
+      <span class="card-btn">进入工具 &rarr;</span>
+    </a>
+
+    <!-- 占位卡：更多工具 -->
+    <div class="tool-card-placeholder">
+      <div class="card-title-placeholder">更多工具上线中...</div>
+      <div class="card-desc-placeholder">
+        Be 动词 &nbsp;/&nbsp; 时态 &nbsp;/&nbsp; 词汇 &nbsp;/&nbsp; 句型
+      </div>
+      <span class="card-tag-placeholder">敬请期待</span>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>联系 <strong>@Merry 老师</strong> &nbsp;&middot;&nbsp; 抖音 &nbsp;/&nbsp; 小红书</p>
+  </footer>
+
+</body>
+</html>
