@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
-  <title>Merry English Lab</title>
+  <title>Merry 老师英语工具实验室</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet" />
@@ -42,7 +42,7 @@
       align-items: center;
     }
 
-    /* ── HERO ── */
+    /* HERO */
     .hero {
       width: 100%;
       text-align: center;
@@ -57,17 +57,16 @@
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
       border-radius: 999px;
       padding: 6px 18px;
       margin-bottom: 28px;
     }
 
     .hero-title {
-      font-family: 'Manrope', 'Archivo Black', sans-serif;
-      font-size: clamp(2.4rem, 8vw, 4rem);
+      font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 3rem);
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1.2;
       letter-spacing: -0.02em;
       color: var(--text-primary);
       margin-bottom: 12px;
@@ -81,14 +80,26 @@
     }
 
     .hero-desc {
-      font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+      font-size: clamp(0.95rem, 2.5vw, 1.05rem);
       color: var(--text-secondary);
       line-height: 1.7;
       max-width: 480px;
       margin: 0 auto;
     }
 
-    /* ── TOOLS SECTION ── */
+    /* SECTION LABEL */
+    .section-label {
+      width: 100%;
+      max-width: 560px;
+      padding: 0 24px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* TOOLS SECTION */
     .tools-section {
       width: 100%;
       max-width: 560px;
@@ -98,7 +109,7 @@
       gap: 24px;
     }
 
-    /* ── ACTIVE CARD ── */
+    /* ACTIVE CARD */
     .tool-card {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -106,7 +117,7 @@
       padding: 32px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       text-decoration: none;
       color: inherit;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -122,30 +133,39 @@
       transform: translateY(0);
     }
 
-    .card-icon {
-      font-size: 32px;
-      line-height: 1;
-      color: var(--brand-green);
+    .card-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--brand-green-dark);
+      background: #E8F9D6;
+      border-radius: 999px;
+      padding: 3px 12px;
+    }
+
+    .card-tag-lesson {
+      color: #666;
+      background: #F0F0F0;
     }
 
     .card-title {
       font-family: 'Manrope', 'Noto Sans SC', sans-serif;
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 800;
       line-height: 1.2;
       color: var(--text-primary);
     }
 
     .card-desc {
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: var(--text-secondary);
       line-height: 1.6;
-    }
-
-    .card-meta {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      font-weight: 700;
     }
 
     .card-btn {
@@ -156,7 +176,7 @@
       font-size: 1rem;
       font-weight: 700;
       border-radius: 16px;
-      padding: 14px 28px;
+      padding: 12px 24px;
       text-align: center;
       text-decoration: none;
       margin-top: 4px;
@@ -168,7 +188,7 @@
       background: var(--brand-green-dark);
     }
 
-    /* ── PLACEHOLDER CARD ── */
+    /* PLACEHOLDER CARD */
     .tool-card-placeholder {
       background: transparent;
       border: 2px dashed var(--border-placeholder);
@@ -181,7 +201,7 @@
 
     .card-title-placeholder {
       font-family: 'Manrope', 'Noto Sans SC', sans-serif;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #BBBBBB;
     }
@@ -203,7 +223,7 @@
       align-self: flex-start;
     }
 
-    /* ── FOOTER ── */
+    /* FOOTER */
     footer {
       width: 100%;
       text-align: center;
@@ -218,7 +238,7 @@
       color: var(--text-secondary);
     }
 
-    /* ── RESPONSIVE ── */
+    /* RESPONSIVE */
     @media (max-width: 400px) {
       .hero {
         padding: 48px 16px 40px;
@@ -226,6 +246,10 @@
 
       .tools-section {
         padding: 0 16px 64px;
+      }
+
+      .section-label {
+        padding: 0 16px 16px;
       }
 
       .tool-card,
@@ -244,38 +268,70 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge">Free AI Tools</div>
-    <h1 class="hero-title">Merry English Lab</h1>
-    <p class="hero-subtitle">by Merry 老师</p>
-    <p class="hero-desc">一个工具解决一个英语学习痛点 &middot; 完全免费</p>
+    <div class="hero-badge">闽教版同步 · 完全免费</div>
+    <h1 class="hero-title">Merry 老师<br>英语工具实验室</h1>
+    <p class="hero-subtitle">闽教版小学英语 &middot; 课本同步 &middot; 游戏化复习</p>
+    <p class="hero-desc">扫码即玩，无需安装<br>每个工具对应一节课，孩子主动刷题</p>
   </section>
 
-  <!-- TOOLS -->
+  <!-- AI 英语学习工具区（Merry 自创，不绑课本）-->
+  <div class="section-label">AI 英语学习工具</div>
   <main class="tools-section">
 
-    <!-- 工具卡 1：字母快乐谷 -->
-    <a class="tool-card" href="./letters/">
-      <div class="card-icon">&#9733;</div>
+    <!-- 字母快乐谷 -->
+    <a class="tool-card" href="./AI英语学习工具/字母快乐谷/">
+      <div class="card-tags">
+        <span class="card-tag">AI 工具</span>
+        <span class="card-tag card-tag-lesson">字母教学</span>
+      </div>
       <div class="card-title">字母快乐谷</div>
-      <div class="card-desc">26 字母笔顺示范 + AI 打分<br />跟着练，对不对立刻知道</div>
-      <div class="card-meta">适合 1&ndash;3 年级</div>
-      <span class="card-btn">进入工具 &rarr;</span>
+      <div class="card-desc">26 个英文字母闯关游戏，认读、配对、书写一套搞定</div>
+      <span class="card-btn">开始玩 &rarr;</span>
     </a>
 
-    <!-- 占位卡：更多工具 -->
-    <div class="tool-card-placeholder">
-      <div class="card-title-placeholder">更多工具上线中...</div>
-      <div class="card-desc-placeholder">
-        Be 动词 &nbsp;/&nbsp; 时态 &nbsp;/&nbsp; 词汇 &nbsp;/&nbsp; 句型
+  </main>
+
+  <!-- 闽教版 · 三年级上册 -->
+  <div class="section-label">闽教版 · 三年级上册</div>
+  <main class="tools-section">
+
+    <!-- 哥布林审判庭 -->
+    <a class="tool-card" href="./闽教版/三年级上册/U2L2-哥布林审判庭/">
+      <div class="card-tags">
+        <span class="card-tag">三年级上</span>
+        <span class="card-tag card-tag-lesson">U2L2</span>
       </div>
-      <span class="card-tag-placeholder">敬请期待</span>
+      <div class="card-title">哥布林审判庭</div>
+      <div class="card-desc">How many ducks? 数量问答 + 复数变形，4 关闯关挑战</div>
+      <span class="card-btn">开始玩 &rarr;</span>
+    </a>
+
+    <!-- 生日年龄派对 -->
+    <a class="tool-card" href="./闽教版/三年级上册/U2L3-生日年龄派对/">
+      <div class="card-tags">
+        <span class="card-tag">三年级上</span>
+        <span class="card-tag card-tag-lesson">U2L3</span>
+      </div>
+      <div class="card-title">生日年龄派对</div>
+      <div class="card-desc">How old are you? 年龄表达 + years 复数，生日主题 4 关闯关</div>
+      <span class="card-btn">开始玩 &rarr;</span>
+    </a>
+
+    <!-- 占位：更多 -->
+    <div class="tool-card-placeholder">
+      <div class="card-title-placeholder">更多课同步上线中...</div>
+      <div class="card-desc-placeholder">
+        U2L4 &nbsp;/&nbsp; U3 &nbsp;/&nbsp; 三年级下册 &nbsp;/&nbsp; 四年级...
+      </div>
+      <span class="card-tag-placeholder">持续更新</span>
     </div>
 
   </main>
 
   <!-- FOOTER -->
   <footer>
-    <p>联系 <strong>@Merry 老师</strong> &nbsp;&middot;&nbsp; 抖音 &nbsp;/&nbsp; 小红书</p>
+    <p><strong>Merry 老师</strong> &nbsp;&middot;&nbsp; 教育博士在读 &nbsp;&middot;&nbsp; 持续更新中</p>
+    <p style="margin-top:8px;">抖音 / 小红书 搜 <strong>Merry 老师英语</strong></p>
   </footer>
 
 </body>

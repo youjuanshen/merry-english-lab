@@ -1,0 +1,3268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>哥布林审判庭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --duo-green: #58CC02;
+  --duo-green-dark: #58A700;
+  --duo-blue: #1CB0F6;
+  --duo-blue-dark: #0A8FCC;
+  --duo-red: #FF4B4B;
+  --duo-red-dark: #CC0000;
+  --duo-yellow: #FFC800;
+  --duo-yellow-dark: #D4A500;
+  --duo-purple: #CE82FF;
+  --duo-orange: #FF9500;
+  --duo-orange-dark: #CC7700;
+  --bg: #FFFFFF;
+  --bg-card: #F7F7F7;
+  --text: #4B4B4B;
+  --text-light: #777777;
+  --border: #E5E5E5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', 'PingFang SC', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow: hidden;
+  color: var(--text);
+}
+
+/* ======== 改动4：页眉常驻教材标识 ======== */
+.banner-course {
+  width: 100%;
+  background: #1CB0F6;
+  color: white;
+  font-family: 'Nunito', 'PingFang SC', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 0;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+/* game/output/feedback 等 screen 用 fixed banner */
+/* v7: 顶部 360px 留给摄像头大圆头，banner 下移到 360px */
+.banner-course-fixed {
+  position: fixed;
+  top: 360px;
+  left: 0;
+  width: 100%;
+  background: #1CB0F6;
+  color: white;
+  font-family: 'Nunito', 'PingFang SC', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 12px;
+  z-index: 102;
+  letter-spacing: 0.3px;
+}
+
+/* ======== SCREENS ======== */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+/* ======== SCREEN: START ======== */
+#screen-start {
+  background: var(--bg);
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+.start-inner {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.start-title {
+  text-align: center;
+}
+
+.start-title h1 {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 40px;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.start-title h2 {
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--duo-green);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.start-title p {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-light);
+  margin-top: 8px;
+}
+
+.goblin-avatar {
+  font-size: 96px;
+  line-height: 1;
+  animation: goblin-shake 2s ease-in-out infinite;
+  display: block;
+  text-align: center;
+}
+
+@keyframes goblin-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg) scale(1.05); }
+  40% { transform: rotate(8deg) scale(1.05); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(4deg); }
+}
+
+.info-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  padding: 20px 24px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 0 var(--border);
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.info-row .icon { font-size: 20px; }
+
+/* 最高分展示 */
+.high-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--duo-yellow-dark);
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 16px;
+  padding: 10px 20px;
+  width: 100%;
+}
+
+/* ======== DUO BUTTON ======== */
+.btn-duo {
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 16px 32px;
+  width: 100%;
+  position: relative;
+  transition: transform 100ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 100ms ease;
+  touch-action: manipulation;
+  letter-spacing: 0.5px;
+}
+
+.btn-duo.green {
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+}
+.btn-duo.green:hover { box-shadow: 0 6px 0 var(--duo-green-dark); transform: translateY(-2px); }
+.btn-duo.green:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-green-dark); }
+
+.btn-duo.red {
+  background: var(--duo-red);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-red-dark);
+}
+.btn-duo.red:hover { box-shadow: 0 6px 0 var(--duo-red-dark); transform: translateY(-2px); }
+.btn-duo.red:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-red-dark); }
+
+.btn-duo:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+.rules-card {
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-yellow-dark);
+}
+
+.rules-card h3 {
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.rules-card p {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.rules-extra {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--duo-green-dark);
+  background: #F0FFF0;
+  border-radius: 10px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--duo-green);
+}
+
+/* ======== SCREEN: GAME ======== */
+#screen-game {
+  background: var(--bg);
+  justify-content: flex-start;
+}
+
+/* ======== 改动2：HUD 重排 ======== */
+/* HUD-top：只含分数+连击，左对齐，最大宽 320px（避开右上 160px 摄像头区） */
+/* v7: 顶部 360px 留给摄像头，banner 在 360px，HUD 在 360+34=394px */
+.hud {
+  position: fixed;
+  top: 394px;
+  left: 0;
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-bottom: 2px solid var(--border);
+  padding: 8px 12px 6px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 96px;
+}
+
+.hud-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.hud-stat .label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.hud-stat .value {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.hud-stat.score .value { color: var(--duo-yellow); }
+.hud-stat.combo .value { color: var(--duo-purple); }
+
+/* 改动2：生命移到底部 fixed */
+.hud-lives-bottom {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  font-size: 28px;
+  letter-spacing: 4px;
+  pointer-events: none;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 旧的 .hud-stat.lives 隐藏 */
+.hud-stat.lives { display: none; }
+
+/* v7: 顶部 360px 留给摄像头，banner 34px + HUD 50px ≈ 84px → 444px */
+.progress-bar-wrap {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px;
+  position: fixed;
+  top: 444px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  background: white;
+  padding-bottom: 8px;
+  padding-right: 96px;
+}
+
+.progress-label {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 4px;
+  text-align: right;
+}
+
+.progress-bar-track {
+  height: 8px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--duo-green);
+  border-radius: 99px;
+  transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Game content area — 改动5：撑满视口 */
+/* v7: 顶部 360px 留给摄像头，content padding-top 从 120 → 480（360+120）*/
+.game-content {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 480px 20px 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow-y: auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+/* Subtitle strip */
+.subtitle-strip {
+  background: #EFF8FE;
+  border: 2px solid var(--duo-blue);
+  border-radius: 16px;
+  padding: 12px 20px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subtitle-strip .question-text {
+  font-weight: 900;
+  font-size: 32px;
+  color: var(--duo-blue);
+  flex: 1;
+  text-align: center;
+}
+
+/* TTS icon */
+.tts-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.tts-icon.speaking {
+  animation: tts-pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes tts-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+}
+
+.subtitle-strip.speaking {
+  background: #D6EFFF;
+  animation: pulse-blue 0.5s ease;
+}
+
+@keyframes pulse-blue {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Prepare hint */
+.prepare-hint {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--duo-blue-dark);
+  text-align: center;
+  background: #EFF8FE;
+  border-radius: 10px;
+  padding: 6px 14px;
+  width: 100%;
+  display: none;
+}
+
+.prepare-hint.show { display: block; }
+
+/* Goblin + bubble row */
+.goblin-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.goblin-char {
+  font-size: 64px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.speech-bubble {
+  background: var(--duo-yellow);
+  border-radius: 20px 20px 20px 4px;
+  padding: 14px 18px;
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--text);
+  box-shadow: 0 4px 0 var(--duo-yellow-dark);
+  flex: 1;
+  position: relative;
+  animation: bubble-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  line-height: 1.3;
+}
+
+@keyframes bubble-pop {
+  0% { transform: scale(0.7) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Emoji grid */
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--border);
+  min-height: 80px;
+  align-content: center;
+}
+
+.emoji-item {
+  font-size: 42px;
+  line-height: 1;
+  transform: scale(0) rotate(-15deg);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+}
+
+.emoji-item.visible {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+
+/* Grid "all ready" shake */
+@keyframes grid-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+
+.emoji-grid.all-ready {
+  animation: grid-shake 0.4s ease;
+}
+
+/* Timer bar */
+.timer-bar-wrap {
+  width: 100%;
+}
+
+.timer-bar-track {
+  height: 12px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.timer-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--duo-green);
+  transition: width linear, background 0.3s ease;
+}
+
+/* Bottom buttons area */
+.game-buttons {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 20px 20px;
+  background: white;
+  border-top: 2px solid var(--border);
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+/* "Start challenge" button — shown during PREPARE */
+#btn-start-challenge {
+  flex: 1;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 18px 12px;
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+  touch-action: manipulation;
+  animation: breathe 1.5s ease-in-out infinite;
+  display: none;
+}
+
+#btn-start-challenge.show { display: block; }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 0 var(--duo-green-dark); }
+  50% { transform: scale(1.04); box-shadow: 0 6px 0 var(--duo-green-dark); }
+}
+
+#btn-start-challenge:active { transform: scale(0.97); animation: none; box-shadow: 0 2px 0 var(--duo-green-dark); }
+
+.btn-answer {
+  flex: 1;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 18px 12px;
+  transition: transform 100ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 100ms ease;
+  touch-action: manipulation;
+}
+
+.btn-answer.really {
+  background: var(--duo-red);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-red-dark);
+}
+.btn-answer.really:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--duo-red-dark); }
+.btn-answer.really:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-red-dark); }
+
+.btn-answer.correct {
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+}
+.btn-answer.correct:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--duo-green-dark); }
+.btn-answer.correct:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-green-dark); }
+
+.btn-answer:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+/* ======== SCREEN: OUTPUT_LOOP ======== */
+#screen-output {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  overflow-y: auto;
+}
+
+#screen-output.show { display: flex; }
+
+/* v7: OUTPUT_LOOP 内容从 360px 以下开始，避开摄像头区域 */
+.output-inner {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 380px 20px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 顶部表扬条 */
+.output-praise-bar {
+  background: var(--duo-green);
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.output-praise-bar .praise-text {
+  font-weight: 900;
+  font-size: 18px;
+  color: white;
+}
+
+.output-goblin-quote {
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.output-goblin-quote .quote-label {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+
+.output-question-label {
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--duo-blue);
+  text-align: center;
+  background: #EFF8FE;
+  border-radius: 12px;
+  padding: 10px 16px;
+}
+
+/* 选择区标题 */
+.output-section-title {
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: -8px;
+  padding-left: 4px;
+}
+
+/* 数字按钮网格 */
+.num-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.num-btn {
+  border: 2.5px solid var(--border);
+  border-radius: 12px;
+  background: white;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--text);
+  padding: 12px 4px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  touch-action: manipulation;
+  text-align: center;
+}
+
+.num-btn:hover { border-color: var(--duo-green); background: #F0FFF0; }
+.num-btn:active { transform: scale(0.95); }
+
+.num-btn.selected {
+  border-color: var(--duo-green);
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 3px 0 var(--duo-green-dark);
+}
+
+/* 名词按钮 */
+.noun-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.noun-btn {
+  border: 2.5px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--text);
+  padding: 14px 8px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  touch-action: manipulation;
+  text-align: center;
+}
+
+.noun-btn:hover { border-color: var(--duo-blue); background: #EFF8FE; }
+.noun-btn:active { transform: scale(0.96); }
+
+.noun-btn.selected {
+  border-color: var(--duo-blue);
+  background: var(--duo-blue);
+  color: white;
+  box-shadow: 0 3px 0 var(--duo-blue-dark);
+}
+
+/* 已选预览 */
+.output-preview {
+  background: var(--bg-card);
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  text-align: center;
+}
+
+.output-preview .preview-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.output-preview .preview-value {
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--text);
+  min-height: 32px;
+}
+
+.preview-placeholder {
+  color: var(--border);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* 提交按钮 — 固定底部 */
+.output-submit-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: 12px 20px 28px;
+  background: white;
+  border-top: 2px solid var(--border);
+  z-index: 160;
+}
+
+#btn-output-submit {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 18px;
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+  touch-action: manipulation;
+  transition: all 100ms ease;
+}
+
+#btn-output-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--duo-green-dark); }
+#btn-output-submit:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-green-dark); }
+#btn-output-submit:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  box-shadow: 0 4px 0 #C0C0C0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ======== FEEDBACK OVERLAY ======== */
+/* v7: 反馈内容从 360px 以下开始，顶部留给摄像头 */
+#screen-feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 380px;
+  gap: 16px;
+}
+
+#screen-feedback.show { display: flex; }
+
+#screen-feedback.correct-fb {
+  background: rgba(88, 204, 2, 0.92);
+  animation: correct-flash 0.15s ease;
+}
+
+#screen-feedback.wrong-fb {
+  background: rgba(255, 75, 75, 0.92);
+  animation: screen-shake 400ms ease;
+}
+
+#screen-feedback.partial-fb {
+  background: rgba(255, 200, 0, 0.92);
+  animation: correct-flash 0.15s ease;
+}
+
+#screen-feedback.both-wrong-fb {
+  background: rgba(255, 149, 0, 0.92);
+  animation: correct-flash 0.15s ease;
+}
+
+@keyframes correct-flash {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  50% { transform: translateX(-8px); }
+  70% { transform: translateX(8px); }
+  90% { transform: translateX(-4px); }
+}
+
+.fb-icon {
+  font-size: 80px;
+  animation: fb-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes fb-pop {
+  0% { transform: scale(0) rotate(-20deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.fb-label {
+  font-weight: 900;
+  font-size: 32px;
+  color: white;
+  text-align: center;
+  animation: fb-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.05s both;
+}
+
+.fb-score {
+  font-weight: 900;
+  font-size: 48px;
+  color: white;
+  animation: score-fly 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+}
+
+@keyframes score-fly {
+  0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+  100% { transform: scale(1.3) translateY(0); opacity: 1; }
+}
+
+.fb-answer {
+  background: rgba(255,255,255,0.25);
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-weight: 900;
+  font-size: 20px;
+  color: white;
+  text-align: center;
+  animation: fb-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
+  max-width: 320px;
+}
+
+/* 教学提示卡 — 答错时显示 */
+.fb-tip-card {
+  background: var(--duo-yellow);
+  border-radius: 16px;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  text-align: center;
+  max-width: 320px;
+  animation: fb-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+  display: none;
+}
+
+.fb-tip-card.show { display: block; }
+
+/* "Next" button on feedback overlay */
+#btn-next-wave {
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 16px 48px;
+  background: white;
+  color: var(--duo-green);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  touch-action: manipulation;
+  display: none;
+  animation: fb-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+#btn-next-wave.show { display: block; }
+#btn-next-wave:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+#btn-next-wave:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+
+/* Confetti */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 201;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  top: 50%;
+  left: 50%;
+}
+
+/* ======== SCREEN: END ======== */
+#screen-end {
+  background: var(--bg);
+  overflow-y: auto;
+  justify-content: flex-start;
+}
+
+.end-inner {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.end-title {
+  text-align: center;
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--text);
+}
+
+.score-big-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.score-main {
+  text-align: center;
+  font-weight: 900;
+  font-size: 48px;
+  color: var(--duo-yellow);
+  animation: num-bounce 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes num-bounce {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.score-label {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-top: -8px;
+}
+
+/* 最高分对比行 */
+.score-hs-note {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  margin-top: -4px;
+}
+.score-hs-note.new-record { background: #FFF8E7; color: var(--duo-yellow-dark); }
+.score-hs-note.tied { background: #EFF8FE; color: var(--duo-blue-dark); }
+.score-hs-note.below { background: var(--bg-card); color: var(--text-light); }
+
+.score-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.score-stat-item {
+  flex: 1;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.score-stat-item .stat-num {
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--duo-green);
+  display: block;
+}
+
+.score-stat-item .stat-lbl {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-light);
+  display: block;
+  margin-top: 2px;
+}
+
+.vocab-card {
+  background: #F0FFF0;
+  border: 2px solid var(--duo-green);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+}
+
+.vocab-card h3, .sentence-card h3, .warn-card h3, .hook-card h3, .error-review-card h3 {
+  font-weight: 900;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.vocab-card .vocab-row {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 2;
+}
+
+/* 句型卡 — 两列布局 */
+.sentence-card {
+  background: #EFF8FE;
+  border: 2px solid var(--duo-blue);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-blue-dark);
+}
+
+.sentence-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sentence-table td {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 4px 0;
+  line-height: 1.8;
+  vertical-align: top;
+}
+
+.sentence-table td:first-child {
+  color: var(--text);
+  width: 55%;
+  padding-right: 8px;
+}
+
+.sentence-table td:last-child {
+  color: var(--text-light);
+  width: 45%;
+}
+
+.warn-card {
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-yellow-dark);
+}
+
+.warn-card p {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 2;
+}
+
+/* 错题回顾卡 */
+.error-review-card {
+  background: #FFF5F5;
+  border: 2px solid var(--duo-red);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-red-dark);
+}
+
+.error-review-card h3 { color: var(--duo-red); }
+
+.error-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,75,75,0.2);
+  align-items: flex-start;
+}
+
+/* 半对错题分界线颜色 */
+.error-item.half-right {
+  border-top-color: rgba(255,200,0,0.35);
+}
+
+.error-wave {
+  font-weight: 900;
+  font-size: 12px;
+  color: white;
+  background: var(--duo-red);
+  border-radius: 8px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.error-wave.half {
+  background: var(--duo-yellow-dark);
+}
+
+.error-content {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.9;
+  color: var(--text);
+}
+
+.error-content .correct { color: var(--duo-green-dark); }
+.error-content .wrong { color: var(--duo-red); }
+.error-content .half-wrong { color: var(--duo-yellow-dark); }
+.error-content .tip-inline { color: var(--duo-yellow-dark); font-size: 12px; }
+
+.no-error-msg {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--duo-green-dark);
+  text-align: center;
+  padding: 8px 0;
+}
+
+.hook-card {
+  background: #F5EEFF;
+  border: 2px solid var(--duo-purple);
+  border-radius: 20px;
+  padding: 18px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 #A855D4;
+  text-align: center;
+}
+
+.hook-card p {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* ======== ANIMATIONS ======== */
+@keyframes confetti-fly {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.3); opacity: 0; }
+}
+
+/* score bounce when updated */
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.score-bump {
+  animation: score-bump 300ms cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* 金光新纪录动画 */
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,200,0,0); }
+  50% { box-shadow: 0 0 30px 10px rgba(255,200,0,0.5); }
+}
+.new-record-glow {
+  animation: gold-glow 1s ease 3;
+}
+
+/* ======== 教学波样式 ======== */
+@keyframes tutorial-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-6px) scale(1.06); }
+  60% { transform: translateY(-3px) scale(1.02); }
+}
+.tutorial-highlight {
+  animation: tutorial-bounce 0.8s ease-in-out infinite !important;
+  box-shadow: 0 0 0 4px rgba(255,200,0,0.5), 0 4px 0 var(--duo-yellow-dark) !important;
+  border-color: var(--duo-yellow) !important;
+}
+.tutorial-highlight-num {
+  border-color: var(--duo-yellow) !important;
+  background: #FFC800 !important;
+  color: #000 !important;
+  box-shadow: 0 0 0 3px rgba(255,200,0,0.5), 0 3px 0 var(--duo-yellow-dark) !important;
+  animation: tutorial-bounce 0.8s ease-in-out infinite !important;
+}
+.tutorial-highlight-noun {
+  border-color: var(--duo-yellow) !important;
+  background: #FFC800 !important;
+  color: #000 !important;
+  box-shadow: 0 0 0 3px rgba(255,200,0,0.5), 0 3px 0 var(--duo-yellow-dark) !important;
+  animation: tutorial-bounce 0.8s ease-in-out infinite !important;
+}
+.tutorial-dim {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+/* 教学气泡 */
+.tutorial-bubble {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  background: var(--duo-yellow);
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-weight: 900;
+  font-size: 15px;
+  color: var(--text);
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 4px 0 var(--duo-yellow-dark);
+  animation: bubble-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  display: none;
+}
+.tutorial-bubble.show { display: block; }
+.tutorial-bubble-arrow {
+  display: block;
+  font-size: 22px;
+  animation: arrow-bounce 0.6s ease-in-out infinite;
+  margin-top: 4px;
+}
+@keyframes arrow-bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+/* 教学完成屏 */
+/* v7: 顶部 360px 留给摄像头，内容从 380px 开始 */
+#screen-tutorial-done {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 380px;
+  background: rgba(88,204,2,0.96);
+  gap: 20px;
+}
+#screen-tutorial-done.show { display: flex; }
+.tutorial-done-icon { font-size: 80px; animation: fb-pop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.tutorial-done-title { font-weight: 900; font-size: 26px; color: white; text-align: center; padding: 0 24px; }
+.tutorial-done-sub { font-weight: 700; font-size: 15px; color: rgba(255,255,255,0.9); text-align: center; }
+
+/* ======== Merry 擂台卡 ======== */
+.merry-challenge-row {
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 16px;
+  padding: 10px 16px;
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.arena-card {
+  background: #FFF8E7;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 20px;
+  padding: 16px 20px;
+  width: 100%;
+  box-shadow: 0 4px 0 var(--duo-yellow-dark);
+}
+.arena-card h3 { font-weight: 900; font-size: 15px; color: var(--text); margin-bottom: 10px; text-align: center; }
+.arena-divider { border: none; border-top: 2px solid rgba(0,0,0,0.1); margin: 8px 0; }
+.arena-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; color: var(--text); padding: 3px 0; }
+.arena-result { font-weight: 900; font-size: 15px; text-align: center; padding: 8px 0 0; }
+.arena-result.win { color: var(--duo-green-dark); }
+.arena-result.lose { color: var(--duo-red); }
+.arena-result.tie { color: var(--duo-blue-dark); }
+@keyframes arena-gold { 0%,100% { box-shadow: 0 4px 0 var(--duo-yellow-dark); } 50% { box-shadow: 0 4px 20px rgba(255,200,0,0.7); } }
+.arena-win-glow { animation: arena-gold 1s ease 4; }
+
+/* ======== 成绩单卡 ======== */
+.scorecard-section { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.scorecard-hint { font-weight: 700; font-size: 13px; color: var(--text-light); text-align: center; }
+.scorecard-container {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 9/16;
+  border: 4px solid var(--duo-green);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.scorecard-banner { background: var(--duo-green); padding: 14px 16px; text-align: center; color: white; }
+.scorecard-banner h2 { font-weight: 900; font-size: 17px; line-height: 1.2; }
+.scorecard-banner p { font-weight: 700; font-size: 12px; opacity: 0.9; margin-top: 3px; }
+.scorecard-body { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+.scorecard-score-box { background: var(--bg-card); border-radius: 16px; padding: 12px; text-align: center; border: 2px solid var(--border); }
+.scorecard-score-num { font-weight: 900; font-size: 48px; color: var(--duo-yellow); line-height: 1; }
+.scorecard-score-sub { font-weight: 700; font-size: 12px; color: var(--text-light); margin-top: 3px; }
+.scorecard-stats { display: flex; gap: 6px; }
+.scorecard-stat { flex: 1; background: #EFF8FE; border-radius: 10px; padding: 8px 4px; text-align: center; }
+.scorecard-stat .s-num { font-weight: 900; font-size: 16px; color: var(--duo-blue); display: block; }
+.scorecard-stat .s-lbl { font-weight: 700; font-size: 10px; color: var(--text-light); display: block; }
+.scorecard-section-title { font-weight: 900; font-size: 12px; color: var(--text); margin-bottom: -4px; }
+.scorecard-weak-text { font-weight: 700; font-size: 11px; color: var(--text); line-height: 1.8; background: #FFF5F5; border-radius: 8px; padding: 6px 10px; border-left: 3px solid var(--duo-red); }
+.scorecard-qr-row { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border-radius: 10px; padding: 8px 12px; }
+.scorecard-qr-placeholder { width: 48px; height: 48px; border: 2px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; background: white; }
+.scorecard-qr-text { font-weight: 700; font-size: 11px; color: var(--text); line-height: 1.7; }
+.scorecard-footer { background: var(--duo-green); padding: 8px 16px; text-align: center; color: white; font-weight: 700; font-size: 11px; }
+.scorecard-screenshot-btn { background: var(--bg-card); border: 2px solid var(--border); border-radius: 14px; padding: 12px 20px; font-family: 'Nunito', system-ui, sans-serif; font-weight: 700; font-size: 14px; color: var(--text); text-align: center; width: 100%; }
+.scorecard-screenshot-tip { font-size: 12px; color: var(--text-light); font-weight: 700; text-align: center; line-height: 1.8; }
+
+/* ======== 私域钩子卡 ======== */
+@keyframes hook-pulse { 0%,100% { box-shadow: 0 4px 0 var(--duo-yellow-dark); } 50% { box-shadow: 0 4px 16px rgba(255,200,0,0.6); } }
+.hook-cta-card { background: var(--duo-yellow); border: 2px solid var(--duo-yellow-dark); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; animation: hook-pulse 2s ease-in-out infinite; }
+.hook-cta-title { font-weight: 900; font-size: 18px; color: var(--text); text-align: center; }
+.hook-cta-inner { background: white; border-radius: 16px; padding: 16px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.hook-teacher-avatar { font-size: 48px; }
+.hook-cta-msg { font-weight: 700; font-size: 14px; color: var(--text); text-align: center; line-height: 1.8; }
+.hook-copy-btn { border: none; border-radius: 14px; font-family: 'Nunito', system-ui, sans-serif; font-weight: 900; font-size: 16px; cursor: pointer; padding: 14px 28px; background: var(--duo-green); color: white; box-shadow: 0 4px 0 var(--duo-green-dark); width: 100%; touch-action: manipulation; transition: all 150ms ease; }
+.hook-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--duo-green-dark); }
+.hook-copy-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-green-dark); }
+.hook-copy-btn.copied { background: var(--duo-green-dark); }
+
+/* 重看教程链接 */
+.tutorial-replay-link { font-weight: 700; font-size: 13px; color: var(--duo-blue); text-align: center; cursor: pointer; text-decoration: underline; padding: 4px 0; }
+.tutorial-replay-link:hover { color: var(--duo-blue-dark); }
+</style>
+</head>
+<body>
+
+<!-- 改动4：全局 fixed banner，所有屏幕顶部都可见 -->
+<div class="banner-course-fixed">📚 闽教版三上 U2L2 · How many ducks? · P26-28</div>
+
+<!-- ======== SCREEN: START ======== -->
+<!-- v7: 顶部 360px 空白区给摄像头大圆头 -->
+<div id="screen-start" class="screen active">
+  <!-- v7: 顶部 360px 空白（含 banner 占位），留给摄像头叠图层 -->
+  <div style="height:360px;flex-shrink:0;width:100%;background:transparent;"></div>
+  <div class="start-inner">
+    <div class="start-title">
+      <h1>哥布林审判庭</h1>
+      <h2>THE GOBLIN'S COURT</h2>
+      <p>抓住这个骗子的尾巴</p>
+    </div>
+
+    <span class="goblin-avatar">😈</span>
+
+    <div class="info-card">
+      <div class="info-row"><span class="icon">🎯</span><span>10 轮闯关</span></div>
+      <div class="info-row"><span class="icon">⏱</span><span>看清物体再开始，越来越快</span></div>
+      <div class="info-row"><span class="icon">⚡</span><span>连击翻倍得分</span></div>
+    </div>
+
+    <!-- 最高分 -->
+    <div class="high-score-row" id="start-high-score">
+      🏆 你的最高分：<span id="start-hs-value">还没记录</span>
+    </div>
+
+    <!-- Merry 擂台行 -->
+    <div class="merry-challenge-row" id="merry-challenge-row"></div>
+
+    <button class="btn-duo green" onclick="startGame()">开始审判 →</button>
+
+    <!-- 重看教程链接（玩过才显示） -->
+    <div id="tutorial-replay-wrap" style="display:none">
+      <div class="tutorial-replay-link" onclick="replayTutorial()">📚 重看教程</div>
+    </div>
+
+    <div class="rules-card">
+      <h3>哥布林会撒谎：</h3>
+      <p>🔢 数量数错 &nbsp;&nbsp; ❌ 漏加 s &nbsp;&nbsp; ❗ 单复数错</p>
+      <div class="rules-extra">抓住骗子后还要拼正解才完美！</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SCREEN: GAME ======== -->
+<div id="screen-game" class="screen">
+  <!-- 改动4：页眉（fixed HUD 之前，让 banner 占顶部流位置） -->
+  <!-- HUD (position:fixed，自动叠在 banner 下) -->
+  <div class="hud">
+    <div class="hud-stat score">
+      <span class="label">💯</span>
+      <span class="value" id="hud-score">0</span>
+    </div>
+    <div class="hud-stat combo">
+      <span class="label">⚡</span>
+      <span class="value" id="hud-combo">x0</span>
+    </div>
+    <!-- 改动2：lives 已移到底部，此处 hidden stat 保留 id -->
+    <div class="hud-stat lives" style="display:none">
+      <span class="value" id="hud-lives">❤️❤️❤️</span>
+    </div>
+  </div>
+  <!-- 改动2：生命 fixed 在底部中央 -->
+  <div class="hud-lives-bottom" id="hud-lives-bottom">❤️❤️❤️</div>
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="progress-label" id="wave-label">第 1 / 10 波</div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="wave-progress" style="width:10%"></div>
+    </div>
+  </div>
+
+  <!-- Main game area -->
+  <div class="game-content">
+    <!-- Subtitle strip with TTS icon -->
+    <div class="subtitle-strip" id="subtitle-strip">
+      <span class="tts-icon" id="tts-icon">🔊</span>
+      <div class="question-text" id="question-text">How many ducks?</div>
+    </div>
+
+    <!-- Prepare hint -->
+    <div class="prepare-hint show" id="prepare-hint">🔊 听清问题再点开始（确认音量已开）</div>
+
+    <div class="goblin-row">
+      <div class="goblin-char" id="goblin-char">😈</div>
+      <div class="speech-bubble" id="goblin-say">Eight ducks!</div>
+    </div>
+
+    <div class="emoji-grid" id="emoji-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- Timer bar — hidden during PREPARE -->
+    <div class="timer-bar-wrap" id="timer-bar-wrap" style="visibility:hidden">
+      <div class="timer-bar-track">
+        <div class="timer-bar-fill" id="timer-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom buttons -->
+  <div class="game-buttons">
+    <!-- PREPARE state: single "start challenge" button -->
+    <button id="btn-start-challenge" class="show" onclick="startChallenge()">🔍 开始判断</button>
+    <!-- CHALLENGE state: two answer buttons (hidden during PREPARE) -->
+    <button class="btn-answer really" id="btn-really" onclick="answer(false)" style="display:none">🤔 Really?</button>
+    <button class="btn-answer correct" id="btn-correct" onclick="answer(true)" style="display:none">✅ That's right!</button>
+  </div>
+</div>
+
+<!-- ======== SCREEN: OUTPUT_LOOP ======== -->
+<div id="screen-output">
+  <div class="output-inner">
+    <!-- 顶部表扬条 -->
+    <div class="output-praise-bar">
+      <span style="font-size:28px">✓</span>
+      <span class="praise-text">你抓住了骗子！</span>
+    </div>
+
+    <!-- 哥布林原话引用 -->
+    <div class="output-goblin-quote">
+      <div class="quote-label">哥布林说：</div>
+      <div id="output-goblin-said" style="font-weight:900;font-size:16px;">"Six kites!"</div>
+    </div>
+
+    <!-- 问题 -->
+    <div class="output-question-label" id="output-question">How many kites?</div>
+
+    <!-- 数字选择 -->
+    <div class="output-section-title">📌 数字：</div>
+    <div class="num-grid" id="num-grid">
+      <!-- 1-10 按钮由 JS 生成 -->
+    </div>
+
+    <!-- 名词选择 -->
+    <div class="output-section-title">📌 名词：</div>
+    <div class="noun-grid" id="noun-grid">
+      <!-- 单数/复数 按钮由 JS 生成 -->
+    </div>
+
+    <!-- 已选预览 -->
+    <div class="output-preview">
+      <div class="preview-label">你的回答：</div>
+      <div class="preview-value" id="output-preview-value">
+        <span class="preview-placeholder">请先选数字和名词</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提交按钮 -->
+  <div class="output-submit-bar">
+    <button id="btn-output-submit" onclick="submitOutputAnswer()" disabled>提交答案 →</button>
+  </div>
+</div>
+
+<!-- ======== FEEDBACK OVERLAY ======== -->
+<div id="screen-feedback">
+  <div class="fb-icon" id="fb-icon">✨</div>
+  <div class="fb-label" id="fb-label">That's right!</div>
+  <div class="fb-score" id="fb-score">+30</div>
+  <div class="fb-answer" id="fb-answer" style="display:none"></div>
+  <!-- 教学提示卡 -->
+  <div class="fb-tip-card" id="fb-tip-card"></div>
+  <!-- "Next wave" button — appears 1s after feedback shows -->
+  <button id="btn-next-wave" onclick="nextWave()">下一题 →</button>
+</div>
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- 教学气泡（覆盖在 game 屏上） -->
+<div class="tutorial-bubble" id="tutorial-bubble">
+  <span id="tutorial-bubble-text">提示</span>
+  <span class="tutorial-bubble-arrow">👇</span>
+</div>
+
+<!-- 教学完成屏 -->
+<div id="screen-tutorial-done">
+  <div class="tutorial-done-icon">🎓</div>
+  <div class="tutorial-done-title">学会了！<br>开始真正的审判～</div>
+  <div class="tutorial-done-sub" id="tutorial-done-countdown">3 秒后自动开始…</div>
+</div>
+
+<!-- ======== SCREEN: END ======== -->
+<!-- v7: 顶部 360px 空白区给摄像头 -->
+<div id="screen-end" class="screen">
+  <div style="height:360px;flex-shrink:0;width:100%;background:transparent;"></div>
+  <div class="end-inner" style="overflow-y:auto;flex:1;width:100%;max-width:480px;margin:0 auto;padding:20px 20px 40px;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div class="end-title">🏆 审判结束 🏆</div>
+
+    <div class="score-big-card" id="score-big-card">
+      <div class="score-main" id="end-score">0</div>
+      <div class="score-label">总分</div>
+      <!-- 最高分对比 -->
+      <div class="score-hs-note" id="end-hs-note" style="display:none"></div>
+      <div class="score-stats">
+        <div class="score-stat-item">
+          <span class="stat-num" id="end-combo">0</span>
+          <span class="stat-lbl">最高连击</span>
+        </div>
+        <div class="score-stat-item">
+          <span class="stat-num" id="end-correct">0/10</span>
+          <span class="stat-lbl">抓住骗子</span>
+        </div>
+        <div class="score-stat-item">
+          <span class="stat-num" id="end-rank">⭐</span>
+          <span class="stat-lbl">评级</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 擂台对比卡 -->
+    <div class="arena-card" id="arena-card">
+      <h3>🏆 你 vs Merry 老师</h3>
+      <hr class="arena-divider">
+      <div class="arena-row"><span>你的分数</span><span id="arena-my-score">—</span></div>
+      <div class="arena-row"><span>Merry 老师</span><span>280</span></div>
+      <hr class="arena-divider">
+      <div class="arena-result" id="arena-result-text">—</div>
+    </div>
+
+    <div class="vocab-card">
+      <h3>📚 今天的单词</h3>
+      <div class="vocab-row">
+        🦆 duck / ducks<br>
+        🐱 cat / cats<br>
+        🪁 kite / kites<br>
+        🦁 lion / lions
+      </div>
+    </div>
+
+    <!-- 错题回顾卡（JS 注入） -->
+    <div id="error-review-section"></div>
+
+    <div class="sentence-card">
+      <h3>✨ 今天的句型</h3>
+      <table class="sentence-table">
+        <tr>
+          <td>How many ducks?</td>
+          <td>有多少只鸭子？</td>
+        </tr>
+        <tr>
+          <td>Seven ducks.</td>
+          <td>七只鸭子。</td>
+        </tr>
+        <tr>
+          <td>Really?</td>
+          <td>真的吗？</td>
+        </tr>
+        <tr>
+          <td>That's right!</td>
+          <td>对的 / 没错</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="warn-card">
+      <h3>⚠️ 易错提醒</h3>
+      <p>
+        · 数字 ≥ 2，名词必须加 s<br>
+        · 数字 = 1，名词不加 s
+      </p>
+    </div>
+
+    <div class="hook-card">
+      <h3>💬 评论区</h3>
+      <p>你考了多少分？<br>评论扣你的分数<br>超过 280 分我给你发学习包 🎁</p>
+    </div>
+
+    <!-- 成绩单截图区 -->
+    <div class="scorecard-section">
+      <div class="scorecard-hint">📸 截图保存成绩单，发给同学挑战！</div>
+      <div class="scorecard-container" id="scorecard-container">
+        <div class="scorecard-banner">
+          <h2>✨ 哥布林审判庭挑战 ✨</h2>
+          <p>U2L2 数字与复数 · Merry 老师</p>
+        </div>
+        <div class="scorecard-body">
+          <div class="scorecard-score-box">
+            <div class="scorecard-score-num" id="sc-score">0</div>
+            <div class="scorecard-score-sub" id="sc-merry-sub">—</div>
+          </div>
+          <div class="scorecard-stats">
+            <div class="scorecard-stat">
+              <span class="s-num" id="sc-correct">0/10</span>
+              <span class="s-lbl">抓住骗子</span>
+            </div>
+            <div class="scorecard-stat">
+              <span class="s-num" id="sc-combo">x0</span>
+              <span class="s-lbl">最高连击</span>
+            </div>
+            <div class="scorecard-stat">
+              <span class="s-num" id="sc-rank">⭐</span>
+              <span class="s-lbl">评级</span>
+            </div>
+          </div>
+          <div class="scorecard-section-title">💡 我的弱点</div>
+          <div class="scorecard-weak-text" id="sc-weak">—</div>
+          <div class="scorecard-qr-row">
+            <div class="scorecard-qr-placeholder">🔲</div>
+            <div class="scorecard-qr-text">扫码挑战 Merry 老师<br>（二维码功能开发中）<br>评论区扣 <b>"1"</b> 获取链接</div>
+          </div>
+        </div>
+        <div class="scorecard-footer">@Merry 老师 · 闽教版英语复习工具</div>
+      </div>
+      <div class="scorecard-screenshot-btn">📸 截屏保存，发朋友圈 / 抖音评论区</div>
+      <div class="scorecard-screenshot-tip">
+        💡 macOS：Cmd + Shift + 4 框选保存<br>
+        💡 手机：长按图片保存
+      </div>
+    </div>
+
+    <!-- 私域钩子卡 -->
+    <div class="hook-cta-card">
+      <div class="hook-cta-title">🎁 想要这套工具吗？</div>
+      <div class="hook-cta-inner">
+        <div class="hook-teacher-avatar">👩‍🏫</div>
+        <div class="hook-cta-msg">
+          💬 评论区扣 <b>"1"</b><br>
+          Merry 老师会发链接给你<br><br>
+          ⭐ 关注 Merry 老师<br>
+          每周更新新工具
+        </div>
+      </div>
+      <button class="hook-copy-btn" id="hook-copy-btn" onclick="copyCode()">📋 复制暗号 "1"</button>
+    </div>
+
+    <button class="btn-duo green" onclick="resetGame()" style="margin-top:4px;">↻ 继续挑战</button>
+  </div>
+</div>
+
+<script>
+// ======== DEBUG ========
+console.log('TTS 可用：', 'speechSynthesis' in window);
+console.log('当前协议：', location.protocol);
+if ('speechSynthesis' in window) {
+  console.log('可用声音数（初始化时）：', speechSynthesis.getVoices().length);
+}
+
+// ======== WEB AUDIO API ========
+let audioCtx = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Safari file:// 下默认 suspended，必须在用户交互同一事件循环内 resume
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(() => {
+        console.log('AudioContext resumed, state:', audioCtx.state);
+      }).catch(e => console.warn('resume 失败:', e));
+    }
+    console.log('AudioContext 初始化成功, state:', audioCtx.state);
+  } catch(e) {
+    console.warn('AudioContext 初始化失败:', e);
+  }
+}
+
+function playTone(freq, duration, type='sine', startTime=0, vol=0.3) {
+  if (!audioCtx) return;
+  // 兜底：如果还是 suspended，再尝试 resume
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t0 = audioCtx.currentTime + startTime;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.01, t0 + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.05);
+  } catch(e) {
+    console.warn('playTone 失败:', e);
+  }
+}
+
+function playClick() {
+  playTone(200, 0.05, 'sine', 0, 0.2);
+}
+
+function playCorrect() {
+  // C5→E5→G5 三音上行
+  playTone(523, 0.15, 'triangle', 0,    0.3);
+  playTone(659, 0.15, 'triangle', 0.10, 0.3);
+  playTone(784, 0.20, 'triangle', 0.20, 0.3);
+}
+
+function playPartial() {
+  // E5→C5 两音温和下行提示
+  playTone(659, 0.15, 'triangle', 0,    0.25);
+  playTone(523, 0.18, 'triangle', 0.15, 0.25);
+}
+
+function playWrong() {
+  // G3→C3 下行
+  playTone(196, 0.15, 'sawtooth', 0,    0.25);
+  playTone(131, 0.15, 'sawtooth', 0.15, 0.25);
+}
+
+function playCombo(n) {
+  // 单音，频率随连击升高
+  const freq = 440 + n * 50;
+  playTone(freq, 0.12, 'sine', 0, 0.25);
+}
+
+function playVictory() {
+  // C5 D5 E5 G5 C6
+  const notes = [523, 587, 659, 784, 1047];
+  notes.forEach((f, i) => {
+    playTone(f, 0.18, 'triangle', i * 0.12, 0.35);
+  });
+}
+
+function playGameOver() {
+  // G3→C3 各 500ms
+  playTone(196, 0.5, 'sawtooth', 0,   0.3);
+  playTone(131, 0.5, 'sawtooth', 0.5, 0.3);
+}
+
+// ======== MERRY 擂台 ========
+const MERRY_SCORE = 280;
+
+// ======== 教学波数据 ========
+const TUTORIAL = {
+  steps: [
+    {
+      question: "How many cats?",
+      goblinSay: "Five cats!",
+      realCount: 5,
+      realNoun: "cats",
+      emoji: "🐱",
+      trap: null,
+      tutorialHint: "哥布林这次说对了！按下方绿色按钮通过",
+      highlightButton: "right"
+    },
+    {
+      question: "How many lions?",
+      goblinSay: "Four lion!",
+      realCount: 4,
+      realNoun: "lions",
+      emoji: "🦁",
+      trap: "missing_s",
+      tutorialHint: "哥布林漏了 s！按下方红色按钮抓住他",
+      highlightButton: "really"
+    },
+    {
+      tutorialHintOutput: "抓住后还要拼正解！选数字 4 和复数 lions",
+      highlightNumber: 4,
+      highlightNoun: "lions"
+    }
+  ]
+};
+
+// localStorage key
+const TUTORIAL_DONE_KEY = 'goblin_tutorial_done';
+function isTutorialDone() { return localStorage.getItem(TUTORIAL_DONE_KEY) === 'true'; }
+function setTutorialDone() { localStorage.setItem(TUTORIAL_DONE_KEY, 'true'); }
+function resetTutorialDone() { localStorage.removeItem(TUTORIAL_DONE_KEY); }
+
+// 教学波状态
+let tutorialMode = false;
+let tutorialStep = 0; // 0=step1, 1=step2, 2=step3(output)
+
+// ======== DATA ========
+const WAVES = [
+  // 波 1-6 保留 v2 数据
+  { question: "How many ducks?",  goblinSay: "Three ducks!",  realCount: 3,  realNoun: "ducks", emoji: "🦆", trap: null },
+  { question: "How many cats?",   goblinSay: "Five cats!",    realCount: 5,  realNoun: "cats",  emoji: "🐱", trap: null },
+  { question: "How many kites?",  goblinSay: "Six kites!",    realCount: 7,  realNoun: "kites", emoji: "🪁", trap: "count" },
+  { question: "How many ducks?",  goblinSay: "Eight ducks!",  realCount: 8,  realNoun: "ducks", emoji: "🦆", trap: null },
+  { question: "How many lions?",  goblinSay: "Four lion!",    realCount: 4,  realNoun: "lions", emoji: "🦁", trap: "missing_s" },
+  { question: "How many cats?",   goblinSay: "Two cats!",     realCount: 2,  realNoun: "cats",  emoji: "🐱", trap: null },
+
+  // 波 7-10 双重陷阱（新设计）
+  { question: "How many ducks?",  goblinSay: "Nine duck!",    realCount: 10, realNoun: "ducks", emoji: "🦆", trap: "count_missing_s" },
+  { question: "How many kites?",  goblinSay: "Two kite!",     realCount: 1,  realNoun: "kite",  emoji: "🪁", trap: "count_one" },
+  { question: "How many cats?",   goblinSay: "Six cats!",     realCount: 6,  realNoun: "cats",  emoji: "🐱", trap: null },
+  { question: "How many lions?",  goblinSay: "Ten lion!",     realCount: 10, realNoun: "lions", emoji: "🦁", trap: "missing_s" }
+];
+
+const TIME_BY_WAVE = [2000, 2000, 2000, 1500, 1500, 1500, 1000, 1000, 800, 800];
+
+// 答错教学提示
+const TIP_BY_TRAP = {
+  count:           "💡 再数清楚一次～",
+  missing_s:       "💡 2 只以上要加 s 哦！duck → ducks",
+  one_plural:      "💡 1 只时名词不加 s，是 dog 不是 dogs",
+  count_missing_s: "💡 数量错了还漏了 s！要先数对，2 只以上加 s",
+  count_one:       "💡 数量错了！注意 1 只时名词不加 s",
+};
+const TIP_FALSE_ALARM = "💡 哥布林这次说对了，不要乱按 Really?～";
+const TIP_TIMEOUT = "💡 时间到！下次快一点～";
+
+// localStorage 最高分
+const HIGH_SCORE_KEY = 'goblin_court_high_score';
+function getHighScore() {
+  return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+}
+function setHighScore(s) {
+  localStorage.setItem(HIGH_SCORE_KEY, String(s));
+}
+
+// 数字词
+const NUM_WORDS = ["One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"];
+
+// 计算正解
+function getCorrectAnswer(wave) {
+  const n = wave.realCount;
+  const numStr = NUM_WORDS[n - 1] || String(n);
+  const singular = wave.realNoun.replace(/s$/, '');
+  const correctNoun = n === 1 ? singular : singular + 's';
+  return `${numStr} ${correctNoun}`;
+}
+
+// 根据 wave 获取名词按钮选项 [singular, plural]
+function getNounOptions(wave) {
+  const singular = wave.realNoun.replace(/s$/, '');
+  const plural = singular + 's';
+  return [singular, plural];
+}
+
+// 计算 OUTPUT_LOOP 正确的数字和名词
+function getCorrectOutputAnswer(wave) {
+  const correctNum = wave.realCount;
+  const singular = wave.realNoun.replace(/s$/, '');
+  const correctNoun = correctNum === 1 ? singular : singular + 's';
+  return { correctNum, correctNoun };
+}
+
+// ======== STATE ========
+let gameState = {
+  currentWave: 0,
+  score: 0,
+  combo: 0,
+  maxCombo: 0,
+  lives: 3,
+  correctCount: 0,
+  phase: 'PREPARE', // 'PREPARE' | 'CHALLENGE' | 'OUTPUT_LOOP' | 'FEEDBACK'
+  errors: [],       // 错题记录
+  outputNum: null,  // OUTPUT_LOOP 选中的数字
+  outputNoun: null, // OUTPUT_LOOP 选中的名词
+};
+
+let timerInterval = null;
+let timerStart = null;
+let waveDuration = 2000;
+let buttonsLocked = false;
+
+// ======== TTS ========
+let voicesReady = false;
+
+function initVoices() {
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    voicesReady = true;
+    console.log('TTS 声音列表已加载，共', voices.length, '个声音');
+    const enVoice = voices.find(v => v.lang.startsWith('en'));
+    console.log('选用英文声音：', enVoice ? enVoice.name + ' (' + enVoice.lang + ')' : '未找到，使用默认');
+  }
+}
+
+if ('speechSynthesis' in window) {
+  speechSynthesis.onvoiceschanged = initVoices;
+  initVoices();
+}
+
+function setTTSIcon(isSpeaking) {
+  const icon = document.getElementById('tts-icon');
+  const strip = document.getElementById('subtitle-strip');
+  if (isSpeaking) {
+    icon.classList.add('speaking');
+    strip.classList.add('speaking');
+  } else {
+    icon.classList.remove('speaking');
+    strip.classList.remove('speaking');
+  }
+}
+
+function speak(text, callback) {
+  if (!('speechSynthesis' in window)) {
+    setTTSIcon(false);
+    if (callback) callback();
+    return;
+  }
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.9;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+
+    const voices = speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en'));
+    if (enVoice) u.voice = enVoice;
+
+    setTTSIcon(true);
+
+    u.onend = function() {
+      setTTSIcon(false);
+      if (callback) callback();
+    };
+    u.onerror = function(e) {
+      console.error('TTS 错误:', e.error, '文本:', text);
+      setTTSIcon(false);
+      if (callback) callback();
+    };
+
+    speechSynthesis.speak(u);
+    console.log('TTS 朗读：', text);
+  } catch(e) {
+    console.error('TTS 失败:', e);
+    setTTSIcon(false);
+    if (callback) callback();
+  }
+}
+
+// ======== SHOW SCREEN ========
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById(id);
+  if (s) s.classList.add('active');
+}
+
+// ======== 更新开始页最高分 ========
+function refreshStartHighScore() {
+  const hs = getHighScore();
+  const el = document.getElementById('start-hs-value');
+  if (el) el.textContent = hs > 0 ? hs + ' 分' : '还没记录';
+}
+
+// ======== START GAME ========
+function startGame() {
+  initAudio();
+  playClick();
+
+  if (!isTutorialDone()) {
+    // 进教学波
+    tutorialMode = true;
+    tutorialStep = 0;
+    showScreen('screen-game');
+    loadTutorialStep(0);
+  } else {
+    startRealGame();
+  }
+}
+
+function startRealGame() {
+  tutorialMode = false;
+  tutorialStep = 0;
+  hideTutorialBubble();
+
+  gameState.currentWave = 0;
+  gameState.score = 0;
+  gameState.combo = 0;
+  gameState.maxCombo = 0;
+  gameState.lives = 3;
+  gameState.correctCount = 0;
+  gameState.phase = 'PREPARE';
+  gameState.errors = [];
+  gameState.outputNum = null;
+  gameState.outputNoun = null;
+
+  showScreen('screen-game');
+  loadWave();
+}
+
+function replayTutorial() {
+  resetTutorialDone();
+  initAudio();
+  playClick();
+  tutorialMode = true;
+  tutorialStep = 0;
+  showScreen('screen-game');
+  loadTutorialStep(0);
+}
+
+// ======== 教学气泡工具函数 ========
+function showTutorialBubble(text) {
+  const bubble = document.getElementById('tutorial-bubble');
+  document.getElementById('tutorial-bubble-text').textContent = text;
+  bubble.classList.add('show');
+}
+function hideTutorialBubble() {
+  document.getElementById('tutorial-bubble').classList.remove('show');
+}
+
+// ======== 教学波步骤渲染 ========
+function loadTutorialStep(step) {
+  tutorialStep = step;
+  hideTutorialBubble();
+
+  // step 0 和 1 渲染游戏屏
+  const stepData = TUTORIAL.steps[step];
+  if (step < 2) {
+    gameState.phase = 'PREPARE';
+    const w = stepData;
+
+    // 更新 HUD（清零）
+    document.getElementById('hud-score').textContent = '0';
+    document.getElementById('hud-combo').textContent = 'x0';
+    document.getElementById('hud-lives').textContent = '❤️❤️❤️';
+    const lb = document.getElementById('hud-lives-bottom');
+    if (lb) lb.textContent = '❤️❤️❤️';
+
+    // 进度条：教学波标记
+    document.getElementById('wave-progress').style.width = '30%';
+    document.getElementById('wave-label').textContent = `📚 教学关 ${step + 1}/2`;
+
+    document.getElementById('question-text').textContent = w.question;
+    document.getElementById('goblin-say').textContent = w.goblinSay;
+    document.getElementById('prepare-hint').classList.remove('show');
+
+    // 计时条隐藏（教学不倒计时）
+    document.getElementById('timer-bar-wrap').style.visibility = 'hidden';
+    document.getElementById('timer-bar').style.width = '100%';
+
+    // 渲染 emoji grid
+    const grid = document.getElementById('emoji-grid');
+    grid.classList.remove('all-ready');
+    grid.innerHTML = '';
+    for (let i = 0; i < w.realCount; i++) {
+      const item = document.createElement('div');
+      item.className = 'emoji-item';
+      item.textContent = w.emoji;
+      grid.appendChild(item);
+      setTimeout(() => item.classList.add('visible'), i * 80);
+    }
+
+    // 延迟显示按钮和气泡
+    setTimeout(() => {
+      grid.classList.add('all-ready');
+      speak(w.question, () => {
+        setTimeout(() => speak(w.goblinSay), 300);
+      });
+
+      // 根据步骤高亮不同按钮
+      const btnStart = document.getElementById('btn-start-challenge');
+      const btnReally = document.getElementById('btn-really');
+      const btnCorrect = document.getElementById('btn-correct');
+
+      // 隐藏开始按钮，直接显示答题按钮
+      btnStart.classList.remove('show');
+      btnStart.style.display = 'none';
+      btnReally.style.display = '';
+      btnCorrect.style.display = '';
+      btnReally.disabled = false;
+      btnCorrect.disabled = false;
+
+      // 清除旧高亮
+      btnReally.classList.remove('tutorial-highlight', 'tutorial-dim');
+      btnCorrect.classList.remove('tutorial-highlight', 'tutorial-dim');
+
+      if (step === 0) {
+        // 教 That's right：绿色高亮，红色变灰
+        btnCorrect.classList.add('tutorial-highlight');
+        btnReally.classList.add('tutorial-dim');
+        setTimeout(() => showTutorialBubble(stepData.tutorialHint), 600);
+      } else if (step === 1) {
+        // 教 Really?：红色高亮，绿色变灰
+        btnReally.classList.add('tutorial-highlight');
+        btnCorrect.classList.add('tutorial-dim');
+        setTimeout(() => showTutorialBubble(stepData.tutorialHint), 600);
+      }
+
+      buttonsLocked = false;
+      gameState.phase = 'CHALLENGE';
+    }, w.realCount * 80 + 200);
+  }
+}
+
+// ======== 教学波答题处理 ========
+function handleTutorialAnswer(playerSaysRight) {
+  if (buttonsLocked) return;
+  buttonsLocked = true;
+  hideTutorialBubble();
+
+  const btnReally = document.getElementById('btn-really');
+  const btnCorrect = document.getElementById('btn-correct');
+  btnReally.disabled = true;
+  btnCorrect.disabled = true;
+  btnReally.classList.remove('tutorial-highlight', 'tutorial-dim');
+  btnCorrect.classList.remove('tutorial-highlight', 'tutorial-dim');
+
+  playClick();
+
+  if (tutorialStep === 0) {
+    // 期望 That's right（true）
+    if (playerSaysRight === true) {
+      playCorrect();
+      showTutorialFeedback('correct', '✓ 答对啦！', () => {
+        loadTutorialStep(1);
+      });
+    } else {
+      // 按错了，提示再试
+      playWrong();
+      showTutorialFeedback('wrong', '❌ 哥布林说对了，按绿色按钮～', () => {
+        buttonsLocked = false;
+        loadTutorialStep(0);
+      });
+    }
+  } else if (tutorialStep === 1) {
+    // 期望 Really?（false）
+    if (playerSaysRight === false) {
+      playCorrect();
+      hideTutorialBubble();
+      // 进入 OUTPUT_LOOP 教学模式
+      const stepData = TUTORIAL.steps[1];
+      const fakeWave = {
+        question: stepData.question,
+        goblinSay: stepData.goblinSay,
+        realCount: stepData.realCount,
+        realNoun: stepData.realNoun,
+        emoji: stepData.emoji,
+        trap: stepData.trap
+      };
+      tutorialStep = 2;
+      enterOutputLoopTutorial(fakeWave);
+    } else {
+      playWrong();
+      showTutorialFeedback('wrong', '❌ 哥布林漏了 s！按红色按钮～', () => {
+        buttonsLocked = false;
+        loadTutorialStep(1);
+      });
+    }
+  }
+}
+
+// 教学简单反馈（覆盖层复用）
+function showTutorialFeedback(type, msg, callback) {
+  const overlay = document.getElementById('screen-feedback');
+  const fbIcon = document.getElementById('fb-icon');
+  const fbLabel = document.getElementById('fb-label');
+  const fbScore = document.getElementById('fb-score');
+  const fbAnswer = document.getElementById('fb-answer');
+  const fbTip = document.getElementById('fb-tip-card');
+  const btnNext = document.getElementById('btn-next-wave');
+
+  fbScore.textContent = '';
+  fbAnswer.style.display = 'none';
+  fbTip.classList.remove('show');
+  btnNext.classList.remove('show');
+  overlay.className = '';
+  overlay.style.display = '';
+
+  if (type === 'correct') {
+    overlay.classList.add('show', 'correct-fb');
+    fbIcon.textContent = '✨';
+    fbLabel.textContent = msg;
+  } else {
+    overlay.classList.add('show', 'wrong-fb');
+    fbIcon.textContent = '😬';
+    fbLabel.textContent = msg;
+  }
+
+  setTimeout(() => {
+    btnNext.textContent = '下一步 →';
+    btnNext.style.color = type === 'correct' ? 'var(--duo-green)' : 'var(--duo-red)';
+    btnNext.classList.add('show');
+    // 临时覆盖 nextWave，只做 callback
+    btnNext.onclick = function() {
+      overlay.className = '';
+      overlay.style.display = '';
+      btnNext.classList.remove('show');
+      btnNext.onclick = nextWave; // 还原
+      clearConfetti();
+      if (callback) callback();
+    };
+  }, 800);
+}
+
+// OUTPUT_LOOP 教学版
+function enterOutputLoopTutorial(wave) {
+  gameState.phase = 'OUTPUT_LOOP';
+  gameState.outputNum = null;
+  gameState.outputNoun = null;
+
+  document.getElementById('output-goblin-said').textContent = `"${wave.goblinSay}"`;
+  document.getElementById('output-question').textContent = wave.question;
+
+  const numGrid = document.getElementById('num-grid');
+  numGrid.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = i;
+    btn.dataset.num = i;
+    btn.onclick = function() { selectNum(i, btn); };
+    if (i === TUTORIAL.steps[2].highlightNumber) {
+      btn.classList.add('tutorial-highlight-num');
+    } else {
+      btn.classList.add('tutorial-dim');
+    }
+    numGrid.appendChild(btn);
+  }
+
+  const nounGrid = document.getElementById('noun-grid');
+  nounGrid.innerHTML = '';
+  const singular = wave.realNoun.replace(/s$/, '');
+  const plural = singular + 's';
+  [singular, plural].forEach(noun => {
+    const btn = document.createElement('button');
+    btn.className = 'noun-btn';
+    btn.textContent = noun;
+    btn.dataset.noun = noun;
+    btn.onclick = function() { selectNoun(noun, btn); };
+    if (noun === TUTORIAL.steps[2].highlightNoun) {
+      btn.classList.add('tutorial-highlight-noun');
+    } else {
+      btn.classList.add('tutorial-dim');
+    }
+    nounGrid.appendChild(btn);
+  });
+
+  updateOutputPreview();
+  document.getElementById('btn-output-submit').disabled = true;
+  document.getElementById('screen-output').classList.add('show');
+
+  // 显示教学气泡（在 output 屏上方）
+  const bubble = document.getElementById('tutorial-bubble');
+  bubble.style.bottom = '140px';
+  setTimeout(() => showTutorialBubble(TUTORIAL.steps[2].tutorialHintOutput), 400);
+}
+
+// 教学 OUTPUT_LOOP 提交判断
+function submitOutputAnswerTutorial() {
+  if (gameState.outputNum !== TUTORIAL.steps[2].highlightNumber ||
+      gameState.outputNoun !== TUTORIAL.steps[2].highlightNoun) {
+    // 提示选对
+    return;
+  }
+  hideTutorialBubble();
+  document.getElementById('screen-output').classList.remove('show');
+  playCorrect();
+
+  // 显示完成反馈
+  showTutorialFeedback('correct', 'Perfect! 🎉', () => {
+    spawnConfetti(true);
+    showTutorialDoneScreen();
+  });
+}
+
+function showTutorialDoneScreen() {
+  const doneScreen = document.getElementById('screen-tutorial-done');
+  doneScreen.classList.add('show');
+  setTutorialDone();
+  refreshStartHighScore();
+
+  // 刷新开始页"重看教程"链接
+  document.getElementById('tutorial-replay-wrap').style.display = '';
+
+  let count = 3;
+  const sub = document.getElementById('tutorial-done-countdown');
+  sub.textContent = `${count} 秒后自动开始…`;
+  const cd = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(cd);
+      doneScreen.classList.remove('show');
+      clearConfetti();
+      startRealGame();
+    } else {
+      sub.textContent = `${count} 秒后自动开始…`;
+    }
+  }, 1000);
+}
+
+// ======== LOAD WAVE (PREPARE phase) ========
+function loadWave() {
+  if (gameState.currentWave >= WAVES.length) {
+    endGame();
+    return;
+  }
+
+  gameState.phase = 'PREPARE';
+  const w = WAVES[gameState.currentWave];
+  waveDuration = TIME_BY_WAVE[gameState.currentWave];
+
+  updateHUD();
+
+  const pct = ((gameState.currentWave + 1) / WAVES.length) * 100;
+  document.getElementById('wave-progress').style.width = pct + '%';
+  document.getElementById('wave-label').textContent = `第 ${gameState.currentWave + 1} / ${WAVES.length} 波`;
+
+  document.getElementById('question-text').textContent = w.question;
+  document.getElementById('goblin-say').textContent = w.goblinSay;
+  document.getElementById('prepare-hint').classList.add('show');
+
+  document.getElementById('timer-bar-wrap').style.visibility = 'hidden';
+  const timerBar = document.getElementById('timer-bar');
+  timerBar.style.width = '100%';
+  timerBar.style.background = 'var(--duo-green)';
+
+  enterPrepareButtons();
+
+  const grid = document.getElementById('emoji-grid');
+  grid.classList.remove('all-ready');
+  grid.innerHTML = '';
+
+  const items = [];
+  for (let i = 0; i < w.realCount; i++) {
+    const item = document.createElement('div');
+    item.className = 'emoji-item';
+    item.textContent = w.emoji;
+    grid.appendChild(item);
+    items.push(item);
+  }
+
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      item.classList.add('visible');
+      if (i === items.length - 1) {
+        setTimeout(() => {
+          grid.classList.add('all-ready');
+          setTimeout(() => {
+            speak(w.question, () => {
+              setTimeout(() => speak(w.goblinSay), 400);
+            });
+          }, 200);
+        }, 150);
+      }
+    }, i * 100);
+  });
+}
+
+// ======== BUTTON STATE HELPERS ========
+function enterPrepareButtons() {
+  const btnStart = document.getElementById('btn-start-challenge');
+  const btnReally = document.getElementById('btn-really');
+  const btnCorrect = document.getElementById('btn-correct');
+  btnStart.classList.add('show');
+  btnStart.style.display = '';
+  btnReally.style.display = 'none';
+  btnCorrect.style.display = 'none';
+}
+
+function enterChallengeButtons() {
+  const btnStart = document.getElementById('btn-start-challenge');
+  const btnReally = document.getElementById('btn-really');
+  const btnCorrect = document.getElementById('btn-correct');
+  btnStart.classList.remove('show');
+  btnStart.style.display = 'none';
+  btnReally.style.display = '';
+  btnCorrect.style.display = '';
+  btnReally.disabled = false;
+  btnCorrect.disabled = false;
+}
+
+// ======== START CHALLENGE (user taps "start") ========
+function startChallenge() {
+  if (gameState.phase !== 'PREPARE') return;
+  gameState.phase = 'CHALLENGE';
+
+  playClick();
+
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  setTTSIcon(false);
+
+  document.getElementById('prepare-hint').classList.remove('show');
+
+  enterChallengeButtons();
+  buttonsLocked = false;
+
+  document.getElementById('timer-bar-wrap').style.visibility = 'visible';
+
+  startTimer();
+}
+
+// ======== TIMER ========
+function startTimer() {
+  clearInterval(timerInterval);
+  timerStart = Date.now();
+  const bar = document.getElementById('timer-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  bar.style.background = 'var(--duo-green)';
+
+  bar.offsetHeight; // force reflow
+
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - timerStart;
+    const pct = Math.max(0, 1 - elapsed / waveDuration);
+    bar.style.transition = 'none';
+    bar.style.width = (pct * 100) + '%';
+
+    if (pct > 0.5) {
+      bar.style.background = 'var(--duo-green)';
+    } else if (pct > 0.25) {
+      bar.style.background = 'var(--duo-yellow)';
+    } else {
+      bar.style.background = 'var(--duo-red)';
+    }
+
+    if (pct <= 0) {
+      clearInterval(timerInterval);
+      if (!buttonsLocked && gameState.phase === 'CHALLENGE') {
+        autoFail();
+      }
+    }
+  }, 50);
+}
+
+function autoFail() {
+  buttonsLocked = true;
+  document.getElementById('btn-really').disabled = true;
+  document.getElementById('btn-correct').disabled = true;
+  processAnswer(null); // timeout
+}
+
+// ======== ANSWER ========
+function answer(playerSaysRight) {
+  if (tutorialMode && tutorialStep < 2) {
+    handleTutorialAnswer(playerSaysRight);
+    return;
+  }
+  if (buttonsLocked || gameState.phase !== 'CHALLENGE') return;
+  buttonsLocked = true;
+  clearInterval(timerInterval);
+  document.getElementById('btn-really').disabled = true;
+  document.getElementById('btn-correct').disabled = true;
+
+  playClick();
+  processAnswer(playerSaysRight);
+}
+
+function processAnswer(playerSaysRight) {
+  const w = WAVES[gameState.currentWave];
+  let isCorrect = false;
+  if (playerSaysRight === true && w.trap === null) isCorrect = true;
+  if (playerSaysRight === false && w.trap !== null) isCorrect = true;
+
+  if (isCorrect) {
+    // 按 That's right! 且答对（trap=null） → 直接得分
+    if (playerSaysRight === true && w.trap === null) {
+      gameState.combo += 1;
+      if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+      const points = 30 * gameState.combo;
+      gameState.score += points;
+      gameState.correctCount += 1;
+
+      playCorrect();
+      if (gameState.combo > 1) {
+        setTimeout(() => playCombo(gameState.combo), 350);
+      }
+
+      showFeedbackDirect('correct_true', points, w);
+
+    } else if (playerSaysRight === false && w.trap !== null) {
+      // 按 Really? 且答对（trap !== null） → 进入 OUTPUT_LOOP
+      gameState.correctCount += 1;
+      playCorrect();
+      enterOutputLoop(w);
+    }
+  } else {
+    // 答错（按错/超时）→ 直接扣分
+    gameState.combo = 0;
+    gameState.score = Math.max(0, gameState.score - 10);
+    gameState.lives -= 1;
+
+    playWrong();
+
+    let userAction;
+    if (playerSaysRight === null) {
+      userAction = "超时未答";
+    } else if (playerSaysRight === true) {
+      userAction = "That's right!（被骗）";
+    } else {
+      userAction = "Really?（误判）";
+    }
+
+    gameState.errors.push({
+      wave: gameState.currentWave + 1,
+      question: w.question,
+      goblinSay: w.goblinSay,
+      correctAnswer: getCorrectAnswer(w),
+      userAction: userAction,
+      userAnswer: null,
+      trap: w.trap,
+      tip: w.trap ? (TIP_BY_TRAP[w.trap] || '') : (playerSaysRight === null ? TIP_TIMEOUT : TIP_FALSE_ALARM),
+      playerSaysRight: playerSaysRight,
+      errorType: 'full', // 完全错
+    });
+
+    showFeedbackDirect('wrong', -10, w, playerSaysRight);
+  }
+}
+
+// ======== OUTPUT LOOP ========
+function enterOutputLoop(wave) {
+  gameState.phase = 'OUTPUT_LOOP';
+  gameState.outputNum = null;
+  gameState.outputNoun = null;
+
+  // 填充 OUTPUT_LOOP 屏幕内容
+  document.getElementById('output-goblin-said').textContent = `"${wave.goblinSay}"`;
+  document.getElementById('output-question').textContent = wave.question;
+
+  // 生成数字按钮 1-10
+  const numGrid = document.getElementById('num-grid');
+  numGrid.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = i;
+    btn.dataset.num = i;
+    btn.onclick = function() { selectNum(i, btn); };
+    numGrid.appendChild(btn);
+  }
+
+  // 生成名词按钮（单数/复数）
+  const nounGrid = document.getElementById('noun-grid');
+  nounGrid.innerHTML = '';
+  const [singular, plural] = getNounOptions(wave);
+  [singular, plural].forEach(noun => {
+    const btn = document.createElement('button');
+    btn.className = 'noun-btn';
+    btn.textContent = noun;
+    btn.dataset.noun = noun;
+    btn.onclick = function() { selectNoun(noun, btn); };
+    nounGrid.appendChild(btn);
+  });
+
+  // 重置预览
+  updateOutputPreview();
+
+  // 重置提交按钮
+  document.getElementById('btn-output-submit').disabled = true;
+
+  // 显示 OUTPUT_LOOP 屏
+  document.getElementById('screen-output').classList.add('show');
+}
+
+function selectNum(num, btnEl) {
+  gameState.outputNum = num;
+  // 更新按钮选中态
+  document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  updateOutputPreview();
+  checkOutputSubmitEnabled();
+}
+
+function selectNoun(noun, btnEl) {
+  gameState.outputNoun = noun;
+  // 更新按钮选中态
+  document.querySelectorAll('.noun-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  updateOutputPreview();
+  checkOutputSubmitEnabled();
+}
+
+function updateOutputPreview() {
+  const previewEl = document.getElementById('output-preview-value');
+  if (gameState.outputNum === null && gameState.outputNoun === null) {
+    previewEl.innerHTML = '<span class="preview-placeholder">请先选数字和名词</span>';
+  } else if (gameState.outputNum === null) {
+    previewEl.textContent = `? ${gameState.outputNoun}`;
+  } else if (gameState.outputNoun === null) {
+    previewEl.textContent = `${gameState.outputNum} ?`;
+  } else {
+    previewEl.textContent = `${gameState.outputNum} ${gameState.outputNoun}`;
+  }
+}
+
+function checkOutputSubmitEnabled() {
+  const canSubmit = gameState.outputNum !== null && gameState.outputNoun !== null;
+  document.getElementById('btn-output-submit').disabled = !canSubmit;
+}
+
+function submitOutputAnswer() {
+  if (gameState.phase !== 'OUTPUT_LOOP') return;
+  if (gameState.outputNum === null || gameState.outputNoun === null) return;
+
+  // 教学模式拦截
+  if (tutorialMode && tutorialStep === 2) {
+    submitOutputAnswerTutorial();
+    return;
+  }
+
+  const w = WAVES[gameState.currentWave];
+  const { correctNum, correctNoun } = getCorrectOutputAnswer(w);
+
+  const numCorrect = (gameState.outputNum === correctNum);
+  const nounCorrect = (gameState.outputNoun === correctNoun);
+
+  // 关闭 OUTPUT_LOOP 屏
+  document.getElementById('screen-output').classList.remove('show');
+
+  const userAnswer = `${gameState.outputNum} ${gameState.outputNoun}`;
+
+  if (numCorrect && nounCorrect) {
+    // 全对 +30 × combo
+    gameState.combo += 1;
+    if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+    const points = 30 * gameState.combo;
+    gameState.score += points;
+
+    playCorrect();
+    if (gameState.combo > 1) {
+      setTimeout(() => playCombo(gameState.combo), 350);
+    }
+
+    showFeedbackOutput('perfect', points, w, userAnswer, correctNum, correctNoun);
+
+  } else if (numCorrect && !nounCorrect) {
+    // 数字对，名词错 +10，combo 不变不清零
+    gameState.score += 10;
+    playPartial();
+
+    gameState.errors.push({
+      wave: gameState.currentWave + 1,
+      question: w.question,
+      goblinSay: w.goblinSay,
+      correctAnswer: getCorrectAnswer(w),
+      userAction: "识别✓但正解错",
+      userAnswer: userAnswer,
+      trap: w.trap,
+      tip: `💡 ${correctNum} 只 ${correctNum >= 2 ? '≥ 2，名词要加 s' : '= 1，名词不加 s'}`,
+      playerSaysRight: false,
+      errorType: 'half',
+    });
+
+    showFeedbackOutput('noun_wrong', 10, w, userAnswer, correctNum, correctNoun);
+
+  } else if (!numCorrect && nounCorrect) {
+    // 数字错，名词对 +10，combo 不变不清零
+    gameState.score += 10;
+    playPartial();
+
+    gameState.errors.push({
+      wave: gameState.currentWave + 1,
+      question: w.question,
+      goblinSay: w.goblinSay,
+      correctAnswer: getCorrectAnswer(w),
+      userAction: "识别✓但正解错",
+      userAnswer: userAnswer,
+      trap: w.trap,
+      tip: "💡 再数一下",
+      playerSaysRight: false,
+      errorType: 'half',
+    });
+
+    showFeedbackOutput('num_wrong', 10, w, userAnswer, correctNum, correctNoun);
+
+  } else {
+    // 全错 +5，combo 不变不清零
+    gameState.score += 5;
+    playWrong();
+
+    gameState.errors.push({
+      wave: gameState.currentWave + 1,
+      question: w.question,
+      goblinSay: w.goblinSay,
+      correctAnswer: getCorrectAnswer(w),
+      userAction: "识别✓但正解错",
+      userAnswer: userAnswer,
+      trap: w.trap,
+      tip: "💡 数清楚 + 注意 ≥2 加 s",
+      playerSaysRight: false,
+      errorType: 'half',
+    });
+
+    showFeedbackOutput('both_wrong', 5, w, userAnswer, correctNum, correctNoun);
+  }
+}
+
+// ======== FEEDBACK: 直接型（错误/真话答对）========
+function showFeedbackDirect(type, points, wave, playerSaysRight) {
+  gameState.phase = 'FEEDBACK';
+
+  const overlay = document.getElementById('screen-feedback');
+  const fbIcon = document.getElementById('fb-icon');
+  const fbLabel = document.getElementById('fb-label');
+  const fbScore = document.getElementById('fb-score');
+  const fbAnswer = document.getElementById('fb-answer');
+  const fbTip = document.getElementById('fb-tip-card');
+  const btnNext = document.getElementById('btn-next-wave');
+
+  btnNext.classList.remove('show');
+  fbTip.classList.remove('show');
+  fbTip.textContent = '';
+
+  const isLastWave = gameState.currentWave >= WAVES.length - 1;
+  const isGameOver = gameState.lives <= 0;
+  btnNext.textContent = (isLastWave || isGameOver) ? '查看战利品 →' : '下一题 →';
+
+  overlay.className = '';
+  overlay.style.display = '';
+
+  if (type === 'correct_true') {
+    overlay.classList.add('show', 'correct-fb');
+    fbIcon.textContent = '✨';
+    fbLabel.textContent = "That's right!";
+    fbScore.textContent = '+' + points;
+    fbAnswer.style.display = 'none';
+    spawnConfetti();
+    speak("That's right!");
+  } else {
+    // wrong
+    overlay.classList.add('show', 'wrong-fb');
+    fbIcon.textContent = '😈';
+    fbLabel.textContent = 'Really?!';
+    fbScore.textContent = '-10';
+
+    const correctAnswer = getCorrectAnswer(wave);
+    fbAnswer.textContent = `正解：${correctAnswer}`;
+    fbAnswer.style.display = 'block';
+
+    // 教学提示
+    let tipText = '';
+    if (playerSaysRight === null) {
+      tipText = TIP_TIMEOUT;
+      if (wave.trap && TIP_BY_TRAP[wave.trap]) {
+        tipText += '  ' + TIP_BY_TRAP[wave.trap];
+      }
+    } else if (playerSaysRight === false && wave.trap === null) {
+      tipText = TIP_FALSE_ALARM;
+    } else if (playerSaysRight === true && wave.trap !== null) {
+      tipText = TIP_BY_TRAP[wave.trap] || '';
+    }
+
+    if (tipText) {
+      fbTip.textContent = tipText;
+      fbTip.classList.add('show');
+    }
+
+    speak("Really?");
+  }
+
+  updateHUD();
+
+  setTimeout(() => {
+    btnNext.classList.add('show');
+  }, 1000);
+}
+
+// ======== FEEDBACK: OUTPUT_LOOP 后的反馈 ========
+function showFeedbackOutput(type, points, wave, userAnswer, correctNum, correctNoun) {
+  gameState.phase = 'FEEDBACK';
+
+  const overlay = document.getElementById('screen-feedback');
+  const fbIcon = document.getElementById('fb-icon');
+  const fbLabel = document.getElementById('fb-label');
+  const fbScore = document.getElementById('fb-score');
+  const fbAnswer = document.getElementById('fb-answer');
+  const fbTip = document.getElementById('fb-tip-card');
+  const btnNext = document.getElementById('btn-next-wave');
+
+  btnNext.classList.remove('show');
+  fbTip.classList.remove('show');
+  fbTip.textContent = '';
+  fbAnswer.style.display = 'none';
+
+  const isLastWave = gameState.currentWave >= WAVES.length - 1;
+  const isGameOver = gameState.lives <= 0;
+  btnNext.textContent = (isLastWave || isGameOver) ? '查看战利品 →' : '下一题 →';
+
+  overlay.className = '';
+  overlay.style.display = '';
+
+  const correctNumWord = NUM_WORDS[correctNum - 1] || String(correctNum);
+  const correctDisplay = `${correctNumWord} ${correctNoun}`;
+
+  if (type === 'perfect') {
+    // 绿屏 +30 × combo，confetti 加量
+    overlay.classList.add('show', 'correct-fb');
+    fbIcon.textContent = '✨';
+    fbLabel.textContent = 'Perfect!';
+    fbScore.textContent = '+' + points;
+    fbAnswer.textContent = `${correctDisplay} ✓`;
+    fbAnswer.style.display = 'block';
+    spawnConfetti(true);
+    speak("That's right!");
+
+  } else if (type === 'noun_wrong') {
+    // 黄屏
+    overlay.classList.add('show', 'partial-fb');
+    fbIcon.textContent = '📝';
+    fbLabel.textContent = '数字对！单复数错';
+    fbScore.textContent = '+10';
+    fbAnswer.textContent = `正解：${correctDisplay}（不是 ${gameState.outputNum} ${gameState.outputNoun}）`;
+    fbAnswer.style.display = 'block';
+    const tip = correctNum >= 2 ? `💡 ${correctNum} 只 ≥ 2，名词要加 s` : `💡 ${correctNum} 只 = 1，名词不加 s`;
+    fbTip.textContent = tip;
+    fbTip.classList.add('show');
+
+  } else if (type === 'num_wrong') {
+    // 黄屏
+    overlay.classList.add('show', 'partial-fb');
+    fbIcon.textContent = '🔢';
+    fbLabel.textContent = '名词形式对！但数错了';
+    fbScore.textContent = '+10';
+    fbAnswer.textContent = `正解：${correctDisplay}（不是 ${gameState.outputNum} ${gameState.outputNoun}）`;
+    fbAnswer.style.display = 'block';
+    fbTip.textContent = '💡 再数一下';
+    fbTip.classList.add('show');
+
+  } else if (type === 'both_wrong') {
+    // 橙屏
+    overlay.classList.add('show', 'both-wrong-fb');
+    fbIcon.textContent = '😅';
+    fbLabel.textContent = '识别对！但正解全错';
+    fbScore.textContent = '+5';
+    fbAnswer.textContent = `正解：${correctDisplay}`;
+    fbAnswer.style.display = 'block';
+    fbTip.textContent = '💡 数清楚 + 注意 ≥2 加 s';
+    fbTip.classList.add('show');
+  }
+
+  // 黄/橙反馈时 btnNext 颜色调整为深色，可读性更好
+  if (type !== 'perfect') {
+    btnNext.style.color = 'var(--text)';
+  } else {
+    btnNext.style.color = 'var(--duo-green)';
+  }
+
+  updateHUD();
+
+  setTimeout(() => {
+    btnNext.classList.add('show');
+  }, 1000);
+}
+
+// ======== NEXT WAVE ========
+function nextWave() {
+  if (gameState.phase !== 'FEEDBACK') return;
+
+  playClick();
+
+  const overlay = document.getElementById('screen-feedback');
+  overlay.className = '';
+  overlay.style.display = '';
+  document.getElementById('btn-next-wave').classList.remove('show');
+  clearConfetti();
+
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  setTTSIcon(false);
+
+  if (gameState.lives <= 0) {
+    playGameOver();
+    setTimeout(() => endGame(), 600);
+    return;
+  }
+
+  gameState.currentWave += 1;
+
+  if (gameState.currentWave >= WAVES.length) {
+    if (gameState.lives > 0) gameState.score += 50;
+    playVictory();
+    setTimeout(() => endGame(), 700);
+  } else {
+    loadWave();
+  }
+}
+
+// ======== CONFETTI ========
+function spawnConfetti(extra) {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#58CC02', '#FFC800', '#1CB0F6', '#FF4B4B', '#CE82FF', '#FF9500', '#00D9B5'];
+  const count = extra ? 36 : 18;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const angle = (i / count) * 360;
+    const dist = (extra ? 120 : 80) + Math.random() * 140;
+    const tx = Math.cos(angle * Math.PI / 180) * dist;
+    const ty = Math.sin(angle * Math.PI / 180) * dist - 60;
+    const rot = Math.random() * 720 - 360;
+    el.style.cssText = `
+      background: ${colors[i % colors.length]};
+      --tx: ${tx}px;
+      --ty: ${ty}px;
+      --rot: ${rot}deg;
+      animation: confetti-fly 800ms cubic-bezier(0.2, 0.8, 0.4, 1) both;
+      animation-delay: ${Math.random() * 80}ms;
+      width: ${8 + Math.random() * 8}px;
+      height: ${8 + Math.random() * 8}px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+    `;
+    container.appendChild(el);
+  }
+}
+
+function clearConfetti() {
+  document.getElementById('confetti-container').innerHTML = '';
+}
+
+// ======== HUD ========
+function updateHUD() {
+  const scoreEl = document.getElementById('hud-score');
+  scoreEl.textContent = gameState.score;
+  scoreEl.classList.remove('score-bump');
+  void scoreEl.offsetWidth;
+  scoreEl.classList.add('score-bump');
+
+  document.getElementById('hud-combo').textContent = 'x' + gameState.combo;
+
+  const hearts = '❤️'.repeat(gameState.lives) + '🖤'.repeat(Math.max(0, 3 - gameState.lives));
+  // 改动2：更新底部生命显示
+  const livesBottom = document.getElementById('hud-lives-bottom');
+  if (livesBottom) livesBottom.textContent = hearts;
+  // 保留旧 id 兼容性
+  const livesEl = document.getElementById('hud-lives');
+  if (livesEl) livesEl.textContent = hearts;
+}
+
+// ======== END GAME ========
+function endGame() {
+  clearInterval(timerInterval);
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  setTTSIcon(false);
+
+  const finalScore = gameState.score;
+  const prevHS = getHighScore();
+
+  document.getElementById('end-score').textContent = finalScore;
+  document.getElementById('end-combo').textContent = 'x' + gameState.maxCombo;
+  document.getElementById('end-correct').textContent = gameState.correctCount + '/10';
+
+  let rank = '😈';
+  if (finalScore >= 280) rank = '🏆';
+  else if (finalScore >= 200) rank = '🥇';
+  else if (finalScore >= 120) rank = '🥈';
+  else if (finalScore >= 60) rank = '🥉';
+  document.getElementById('end-rank').textContent = rank;
+
+  // 最高分逻辑
+  const hsNote = document.getElementById('end-hs-note');
+  hsNote.style.display = '';
+  const scoreCard = document.getElementById('score-big-card');
+  scoreCard.classList.remove('new-record-glow');
+
+  if (finalScore > prevHS) {
+    const diff = finalScore - prevHS;
+    setHighScore(finalScore);
+    hsNote.className = 'score-hs-note new-record';
+    hsNote.textContent = `🎉 新纪录！比之前高 ${diff} 分`;
+    scoreCard.classList.add('new-record-glow');
+    setTimeout(() => spawnConfetti(true), 300);
+  } else if (finalScore === prevHS && prevHS > 0) {
+    hsNote.className = 'score-hs-note tied';
+    hsNote.textContent = `⚡ 平了你的纪录（${prevHS} 分）`;
+  } else {
+    const gap = prevHS - finalScore;
+    hsNote.className = 'score-hs-note below';
+    hsNote.textContent = prevHS > 0 ? `距最高分还差 ${gap} 分（最高 ${prevHS} 分）` : '';
+    if (!prevHS) hsNote.style.display = 'none';
+  }
+
+  // 错题回顾卡
+  buildErrorReview();
+
+  // 擂台卡
+  buildArenaCard(finalScore);
+
+  // 成绩单填充
+  buildScorecard(finalScore);
+
+  // 刷新开始页最高分（下次进入时用）
+  refreshStartHighScore();
+
+  // 刷新 Merry 擂台行
+  refreshMerryRow();
+
+  showScreen('screen-end');
+}
+
+// ======== 错题回顾 ========
+function buildErrorReview() {
+  const section = document.getElementById('error-review-section');
+  section.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'error-review-card';
+
+  if (gameState.errors.length === 0) {
+    card.innerHTML = `<h3>❌ 错题回顾</h3><div class="no-error-msg">🎉 满分通关！没有错题</div>`;
+  } else {
+    const fullErrors = gameState.errors.filter(e => e.errorType === 'full');
+    const halfErrors = gameState.errors.filter(e => e.errorType === 'half');
+
+    let titleText = '';
+    if (fullErrors.length > 0 && halfErrors.length > 0) {
+      titleText = `❌ 错题 ${fullErrors.length} 题 &nbsp;·&nbsp; ⚠️ 半对 ${halfErrors.length} 题`;
+    } else if (fullErrors.length > 0) {
+      titleText = `❌ 你错了这 ${fullErrors.length} 题`;
+    } else {
+      titleText = `⚠️ 识别对但正解有误（${halfErrors.length} 题）`;
+    }
+
+    card.innerHTML = `<h3>${titleText}</h3>`;
+
+    // 先显示完全错（红色）
+    gameState.errors.forEach(err => {
+      const item = document.createElement('div');
+      const isHalf = err.errorType === 'half';
+      item.className = 'error-item' + (isHalf ? ' half-right' : '');
+
+      const waveLabel = document.createElement('div');
+      waveLabel.className = 'error-wave' + (isHalf ? ' half' : '');
+      waveLabel.textContent = `波 ${err.wave}`;
+
+      let tipText = err.tip || '';
+
+      let contentHTML = '';
+      if (isHalf) {
+        // 半对：识别 ✓ 但正解错
+        contentHTML = `
+          <div>哥布林说：<b>"${err.goblinSay}"</b></div>
+          <div>你识别 ✓ 但正解错：你答 <span class="half-wrong">"${err.userAnswer}"</span>，正解 <span class="correct">${err.correctAnswer}</span></div>
+          ${tipText ? `<div class="tip-inline">${tipText}</div>` : ''}
+        `;
+      } else {
+        // 完全错
+        contentHTML = `
+          <div>哥布林说：<b>"${err.goblinSay}"</b></div>
+          <div>正解：<span class="correct">${err.correctAnswer}</span></div>
+          <div>你按了：<span class="wrong">${err.userAction}</span></div>
+          ${tipText ? `<div class="tip-inline">${tipText}</div>` : ''}
+        `;
+      }
+
+      const content = document.createElement('div');
+      content.className = 'error-content';
+      content.innerHTML = contentHTML;
+
+      item.appendChild(waveLabel);
+      item.appendChild(content);
+      card.appendChild(item);
+    });
+  }
+
+  section.appendChild(card);
+}
+
+// ======== 擂台卡 ========
+function buildArenaCard(finalScore) {
+  document.getElementById('arena-my-score').textContent = finalScore + ' 分';
+  const resultEl = document.getElementById('arena-result-text');
+  const arenaCard = document.getElementById('arena-card');
+  arenaCard.classList.remove('arena-win-glow');
+
+  if (finalScore > MERRY_SCORE) {
+    const diff = finalScore - MERRY_SCORE;
+    resultEl.className = 'arena-result win';
+    resultEl.textContent = `🎉 你超过了 Merry 老师！比她高 ${diff} 分`;
+    arenaCard.classList.add('arena-win-glow');
+  } else if (finalScore === MERRY_SCORE) {
+    resultEl.className = 'arena-result tie';
+    resultEl.textContent = '⚡ 你跟 Merry 老师打平！再来一局超越她！';
+  } else {
+    const diff = MERRY_SCORE - finalScore;
+    resultEl.className = 'arena-result lose';
+    resultEl.textContent = `😤 还差 ${diff} 分到 Merry 的成绩，再来一局！`;
+  }
+}
+
+// ======== 成绩单填充 ========
+function buildScorecard(finalScore) {
+  document.getElementById('sc-score').textContent = finalScore;
+  document.getElementById('sc-correct').textContent = gameState.correctCount + '/10';
+  document.getElementById('sc-combo').textContent = 'x' + gameState.maxCombo;
+
+  let rank = '😈';
+  if (finalScore >= 280) rank = '🏆';
+  else if (finalScore >= 200) rank = '🥇';
+  else if (finalScore >= 120) rank = '🥈';
+  else if (finalScore >= 60) rank = '🥉';
+  document.getElementById('sc-rank').textContent = rank;
+
+  // 擂台副标题
+  const sub = document.getElementById('sc-merry-sub');
+  if (finalScore > MERRY_SCORE) {
+    sub.textContent = `超过 Merry 老师 ${finalScore - MERRY_SCORE} 分 🏆`;
+    sub.style.color = 'var(--duo-green-dark)';
+  } else if (finalScore === MERRY_SCORE) {
+    sub.textContent = '与 Merry 老师打平 ⚡';
+    sub.style.color = 'var(--duo-blue-dark)';
+  } else {
+    sub.textContent = `距 Merry 老师还差 ${MERRY_SCORE - finalScore} 分`;
+    sub.style.color = 'var(--text-light)';
+  }
+
+  // 弱点分析
+  const weakEl = document.getElementById('sc-weak');
+  const trapCounts = {};
+  gameState.errors.forEach(e => {
+    if (e.trap) trapCounts[e.trap] = (trapCounts[e.trap] || 0) + 1;
+  });
+  const tipMap = {
+    missing_s: '漏加 s（名词复数）',
+    count: '数量数错',
+    count_missing_s: '数量错 + 漏加 s',
+    count_one: '数量错（1 的用法）',
+    one_plural: '1 只时不应加 s',
+  };
+  let weakLines = [];
+  Object.entries(trapCounts).forEach(([k, v]) => {
+    if (tipMap[k]) weakLines.push(`${tipMap[k]}：错 ${v} 次`);
+  });
+  if (gameState.errors.length === 0) {
+    weakEl.textContent = '🎉 无弱点！满分通关！';
+    weakEl.style.background = '#F0FFF0';
+    weakEl.style.borderColor = 'var(--duo-green)';
+  } else {
+    weakEl.textContent = weakLines.length > 0
+      ? weakLines.join('\n') + '\n→ 闽教版 U2L2 复习名词复数'
+      : `共错 ${gameState.errors.length} 题 → 闽教版 U2L2 复习名词复数`;
+    weakEl.style.whiteSpace = 'pre-line';
+  }
+}
+
+// ======== 开始页 Merry 行刷新 ========
+function refreshMerryRow() {
+  const el = document.getElementById('merry-challenge-row');
+  const hs = getHighScore();
+  if (hs > MERRY_SCORE) {
+    el.innerHTML = `🎯 Merry 老师打了 ${MERRY_SCORE} 分<br>🏆 <b>你已经超越了 Merry！再来一局保持纪录！</b>`;
+  } else {
+    el.innerHTML = `🎯 Merry 老师打了 ${MERRY_SCORE} 分<br>你能超过吗？`;
+  }
+}
+
+// ======== 复制暗号 ========
+function copyCode() {
+  const btn = document.getElementById('hook-copy-btn');
+  navigator.clipboard.writeText('1').then(() => {
+    btn.textContent = '✓ 已复制！去评论区粘贴';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 复制暗号 "1"';
+      btn.classList.remove('copied');
+    }, 3000);
+  }).catch(() => {
+    btn.textContent = '✓ 暗号是 "1"，去评论区输入';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 复制暗号 "1"';
+      btn.classList.remove('copied');
+    }, 3000);
+  });
+}
+
+// ======== RESET ========
+function resetGame() {
+  startGame();
+}
+
+// ======== 初始化开始页最高分 ========
+refreshStartHighScore();
+refreshMerryRow();
+
+// 总是显示"重看教程"链接（方便随时进入教程）
+document.getElementById('tutorial-replay-wrap').style.display = '';
+</script>
+</body>
+</html>
