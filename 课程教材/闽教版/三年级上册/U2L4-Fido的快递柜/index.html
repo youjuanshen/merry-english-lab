@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>U2L4 · Fido 智能快递柜 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS 变量（复用 U2L3）===== */
+:root {
+  --duo-green: #58CC02;
+  --duo-green-dark: #58A700;
+  --duo-blue: #1CB0F6;
+  --duo-blue-dark: #0A8FCC;
+  --duo-red: #FF4B4B;
+  --duo-red-dark: #CC0000;
+  --duo-yellow: #FFC800;
+  --duo-yellow-dark: #D4A500;
+  --duo-purple: #CE82FF;
+  --duo-orange: #FF9500;
+  --bg: #FFFFFF;
+  --bg-card: #F7F7F7;
+  --text: #4B4B4B;
+  --text-light: #777777;
+  --border: #E5E5E5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+/* ===== 布局硬约束（核心修复）===== */
+html, body {
+  width: 100%;
+  height: 100vh; /* 旧 Safari fallback */
+  height: 100dvh; /* 动态视口，避开 iOS Safari 工具栏 */
+  overflow: hidden;
+  font-family: 'Nunito', 'PingFang SC', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* .app 全屏 flex 容器 */
+.app {
+  height: 100vh; /* 旧 Safari fallback */
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* 每个屏幕 = 100% 父容器 flex 列 */
+.screen {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+/* ===== HUD 顶栏（固定高度）===== */
+.hud-bar {
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 3px solid var(--border);
+  padding: 8px 16px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 10;
+}
+.hud-badge {
+  background: var(--duo-blue);
+  color: white;
+  font-weight: 900;
+  font-size: clamp(10px, 2.5vw, 13px);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+.hud-title {
+  font-weight: 900;
+  font-size: clamp(13px, 3.5vw, 16px);
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+}
+.hud-score {
+  font-weight: 900;
+  font-size: clamp(15px, 4vw, 20px);
+  color: var(--duo-yellow-dark);
+  transition: transform 0.3s ease;
+}
+.hud-score.bump { animation: score-bump 300ms cubic-bezier(0.34,1.56,0.64,1); }
+
+/* 进度条 */
+.progress-bar {
+  flex-shrink: 0;
+  padding: 4px 16px 4px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+.progress-track {
+  height: 6px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+.progress-fill {
+  height: 100%;
+  background: var(--duo-green);
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ===== .scene — 中间可伸缩内容区 ===== */
+.scene {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 8px 16px;
+  gap: 6px;
+  min-height: 0; /* 允许 flex 子元素收缩 */
+}
+
+/* ===== 底部按钮区（固定高度）===== */
+.btn-area {
+  flex-shrink: 0;
+  padding: clamp(8px, 2vh, 14px) 20px;
+  background: white;
+  border-top: 2px solid var(--border);
+}
+
+/* ===== 按钮（复用 U2L3 clamp）===== */
+.btn-duo {
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(16px, 4vw, 22px);
+  cursor: pointer;
+  padding: clamp(8px, 2vh, 16px) clamp(12px, 4vw, 24px);
+  width: 100%;
+  position: relative;
+  transition: transform 100ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 100ms ease;
+  touch-action: manipulation;
+  letter-spacing: 0.5px;
+}
+.btn-duo.green {
+  background: var(--duo-green);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-green-dark);
+}
+.btn-duo.green:hover { box-shadow: 0 6px 0 var(--duo-green-dark); transform: translateY(-2px); }
+.btn-duo.green:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--duo-green-dark); }
+.btn-duo.blue {
+  background: var(--duo-blue);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-blue-dark);
+}
+.btn-duo.red {
+  background: var(--duo-red);
+  color: white;
+  box-shadow: 0 4px 0 var(--duo-red-dark);
+}
+.btn-duo:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+/* ===== 烟花/Confetti（复用 U2L3）===== */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ===== 动画 ===== */
+@keyframes confetti-fall {
+  0% { transform: translate(0, -20px) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--tx), 900px) rotate(var(--rot)); opacity: 0; }
+}
+@keyframes fb-pop {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes bounce-in {
+  0% { transform: translateY(20px) scale(0.85); opacity: 0; }
+  70% { transform: translateY(-3px) scale(1.03); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes bubble-appear {
+  0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  70% { transform: scale(1.15) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes bubble-bounce {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+@keyframes key-press {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+  100% { transform: translateY(0); }
+}
+@keyframes key-hint-flash {
+  0%,100% { box-shadow: 0 4px 0 #58A700, 0 0 0 0 rgba(88,204,2,0); }
+  50% { box-shadow: 0 4px 0 #58A700, 0 0 20px 6px rgba(88,204,2,0.7); }
+}
+@keyframes wrong-flash {
+  0%,100% { background: var(--duo-red); }
+  50% { background: #ff8080; }
+}
+@keyframes fire-flash {
+  0%,100% { background: linear-gradient(135deg, #fff0e8, #ffe0d0); }
+  50% { background: linear-gradient(135deg, #ffcccc, #ffaaaa); }
+}
+@keyframes slide-up {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes star-burst {
+  0% { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0.3); opacity: 0; }
+}
+@keyframes coin-fly {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
+/* ===== 反馈覆盖层（复用 U2L3）===== */
+#overlay-feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+#overlay-feedback.show { display: flex; }
+#overlay-feedback.green-fb { background: rgba(88,204,2,0.93); animation: fb-pop 0.2s ease; }
+#overlay-feedback.red-fb { background: rgba(255,75,75,0.93); animation: shake 0.4s ease; }
+.fb-big-text {
+  font-weight: 900; font-size: clamp(28px, 8vw, 42px); color: white; text-align: center;
+  text-shadow: 0 3px 0 rgba(0,0,0,0.2);
+  animation: fb-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+  padding: 0 20px;
+}
+.fb-sub-text {
+  font-weight: 700; font-size: clamp(15px, 4vw, 20px); color: rgba(255,255,255,0.9);
+  text-align: center;
+  animation: fb-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.08s both;
+  padding: 0 20px;
+}
+.fb-coin { font-weight: 900; font-size: 40px; color: white; }
+
+/* ===== Next 按钮（手动，复用 U2L3）===== */
+#manual-next-btn {
+  display: none;
+  position: fixed;
+  bottom: clamp(16px, 4vh, 28px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  width: calc(100% - 40px);
+  max-width: 440px;
+}
+#manual-next-btn.show { display: block; }
+.next-btn-inner {
+  background: var(--duo-green);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(16px, 4.5vw, 22px);
+  cursor: pointer;
+  padding: clamp(10px, 2.5vh, 18px) 24px;
+  width: 100%;
+  box-shadow: 0 6px 0 var(--duo-green-dark), 0 10px 30px rgba(31,138,31,0.4);
+  animation: next-btn-pulse 1.5s ease-in-out infinite;
+  touch-action: manipulation;
+}
+@keyframes next-btn-pulse {
+  0%,100% { box-shadow: 0 6px 0 #1F8A1F, 0 10px 30px rgba(31,138,31,0.4); }
+  50%     { box-shadow: 0 6px 0 #1F8A1F, 0 10px 40px rgba(88,204,2,0.7); }
+}
+.next-btn-inner:active { transform: translateY(3px); box-shadow: 0 3px 0 #1F8A1F; animation: none; }
+
+/* ===== INTRO 屏 ===== */
+#screen-intro {
+  background: linear-gradient(160deg, #F0FFF0 0%, #E8F4FF 100%);
+  justify-content: center;
+}
+.intro-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 3vh, 20px);
+  padding: 0 24px;
+  width: 100%;
+}
+.intro-badge {
+  background: var(--duo-blue);
+  color: white;
+  font-weight: 900;
+  font-size: clamp(12px, 3vw, 16px);
+  padding: 6px 18px;
+  border-radius: 99px;
+}
+.intro-title {
+  font-weight: 900;
+  font-size: clamp(22px, 6vw, 34px);
+  color: var(--text);
+  text-align: center;
+  animation: bounce-in 0.5s ease both;
+}
+.intro-card {
+  background: white;
+  border: 4px solid var(--duo-green);
+  border-radius: 24px;
+  padding: clamp(16px, 4vh, 28px) 24px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 6px 0 var(--duo-green-dark), 0 10px 24px rgba(88,204,2,0.15);
+  animation: float 2s ease-in-out infinite;
+}
+.intro-sentence {
+  font-weight: 900;
+  font-size: clamp(20px, 5.5vw, 30px);
+  color: var(--duo-green-dark);
+  line-height: 1.3;
+}
+.intro-sub {
+  font-size: clamp(13px, 3.5vw, 16px);
+  color: var(--text-light);
+  margin-top: 6px;
+  font-weight: 700;
+}
+.intro-levels {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.level-pill {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 700;
+  color: var(--text-light);
+}
+.level-pill.active {
+  background: var(--duo-yellow);
+  border-color: var(--duo-yellow-dark);
+  color: white;
+}
+
+/* ===== 关 0：热身屏 ===== */
+#screen-warmup {
+  background: linear-gradient(135deg, #FFF8E7, #F0FFF0);
+}
+.warmup-label {
+  font-weight: 900;
+  font-size: clamp(16px, 4vw, 20px);
+  color: var(--text-light);
+  text-align: center;
+  flex-shrink: 0;
+}
+.warmup-subtitle {
+  font-size: clamp(12px, 3vw, 15px);
+  color: var(--text-light);
+  text-align: center;
+  flex-shrink: 0;
+}
+.bubble-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 2vw, 10px);
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+  padding: 4px 0;
+}
+.bubble {
+  width: clamp(54px, 14vw, 72px);
+  height: clamp(54px, 14vw, 72px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFC800, #FF9500);
+  border: 3px solid #D4A500;
+  box-shadow: 0 4px 0 #A07800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 26px);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  animation: bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+}
+.bubble.tapped {
+  background: linear-gradient(135deg, #58CC02, #2EA800);
+  border-color: #1F7A00;
+  box-shadow: 0 2px 0 #1F7A00;
+  animation: bubble-bounce 0.3s ease;
+  cursor: default;
+}
+.bubble:active { transform: scale(0.92); }
+
+.warmup-progress {
+  flex-shrink: 0;
+  font-weight: 900;
+  font-size: clamp(14px, 3.5vw, 18px);
+  color: var(--duo-green-dark);
+  text-align: center;
+  padding: 4px 0;
+}
+
+/* ===== 对话泡（关 1/2/3 通用）===== */
+.dialog-box {
+  background: white;
+  border: 3px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(8px, 2vh, 14px) clamp(12px, 3vw, 20px);
+  width: 100%;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 var(--border);
+}
+.dialog-speaker {
+  font-size: clamp(10px, 2.5vw, 13px);
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 3px;
+}
+.dialog-text {
+  font-weight: 900;
+  font-size: clamp(14px, 3.8vw, 18px);
+  color: var(--text);
+  line-height: 1.35;
+}
+.dialog-text .hi {
+  color: var(--duo-blue);
+}
+
+/* ===== 角色区 ===== */
+.character-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(8px, 3vw, 16px);
+  flex-shrink: 0;
+}
+.char-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.char-emoji {
+  font-size: clamp(40px, 12vw, 64px);
+  line-height: 1;
+  transition: transform 0.2s;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+}
+.char-wrap:active .char-emoji { transform: scale(0.88); }
+.char-name {
+  font-size: clamp(10px, 2.5vw, 13px);
+  font-weight: 700;
+  color: var(--text-light);
+}
+.char-speech-bubble {
+  background: var(--duo-blue);
+  color: white;
+  font-weight: 900;
+  font-size: clamp(11px, 3vw, 14px);
+  border-radius: 12px;
+  padding: 4px 10px;
+  max-width: 140px;
+  text-align: center;
+  line-height: 1.3;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.char-speech-bubble.show { opacity: 1; }
+.cabinet-emoji {
+  font-size: clamp(48px, 14vw, 80px);
+  line-height: 1;
+  animation: float 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));
+  flex-shrink: 0;
+}
+
+/* ===== 号码进度显示 ===== */
+.number-display {
+  display: flex;
+  gap: clamp(4px, 1.5vw, 8px);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.num-slot {
+  width: clamp(28px, 8vw, 40px);
+  height: clamp(34px, 9vw, 48px);
+  border-radius: 10px;
+  border: 3px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 26px);
+  color: var(--text);
+  transition: all 0.2s;
+}
+.num-slot.filled {
+  border-color: var(--duo-green);
+  background: #F0FFE8;
+  color: var(--duo-green-dark);
+}
+.num-slot.active {
+  border-color: var(--duo-blue);
+  background: #E8F7FF;
+  animation: float 1s ease-in-out infinite;
+}
+
+/* ===== 骨头数字键盘 ===== */
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(4px, 1.5vw, 8px);
+  width: 100%;
+  flex-shrink: 0;
+}
+.key {
+  --kborder: #1F7A00;
+  background: white;
+  border: 2.5px solid var(--duo-green);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--kborder);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(6px, 1.5vh, 10px) 4px;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+  user-select: none;
+}
+.key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--kborder);
+}
+.key-num {
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 26px);
+  color: var(--text);
+  line-height: 1;
+}
+.key-word {
+  font-weight: 700;
+  font-size: clamp(8px, 2vw, 11px);
+  color: var(--text-light);
+  margin-top: 2px;
+}
+.key.hint-flash {
+  animation: key-hint-flash 0.6s ease-in-out 2;
+}
+.key.wrong-flash {
+  animation: wrong-flash 0.4s ease;
+}
+
+/* ===== 关 3：火警屏 ===== */
+#screen-level3 {
+  background: linear-gradient(135deg, #fff0e8, #ffe0d0);
+}
+#screen-level3.fire-active {
+  animation: fire-flash 0.6s ease-in-out infinite;
+}
+.fire-banner {
+  background: var(--duo-red);
+  color: white;
+  font-weight: 900;
+  font-size: clamp(16px, 4.5vw, 22px);
+  padding: 6px 20px;
+  border-radius: 12px;
+  text-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 0 var(--duo-red-dark);
+}
+.emergency-nums {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.emergency-pill {
+  background: white;
+  border: 3px solid var(--duo-red);
+  border-radius: 12px;
+  padding: 6px 16px;
+  font-weight: 900;
+  font-size: clamp(14px, 3.5vw, 18px);
+  color: var(--duo-red);
+}
+
+/* ===== 最终完成屏 ===== */
+#screen-finish {
+  background: linear-gradient(135deg, #F0FFE8, #FFF8E7);
+  justify-content: center;
+}
+.finish-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 3vh, 20px);
+  padding: 0 24px;
+  width: 100%;
+}
+.finish-emoji {
+  font-size: clamp(60px, 18vw, 100px);
+  animation: float 2s ease-in-out infinite;
+}
+.finish-title {
+  font-weight: 900;
+  font-size: clamp(22px, 6vw, 36px);
+  color: var(--duo-green-dark);
+  text-align: center;
+  animation: bounce-in 0.5s ease both;
+}
+.finish-score {
+  font-weight: 900;
+  font-size: clamp(28px, 8vw, 48px);
+  color: var(--duo-yellow-dark);
+}
+.finish-nums-review {
+  background: white;
+  border: 3px solid var(--duo-green);
+  border-radius: 20px;
+  padding: clamp(12px, 3vh, 20px) 20px;
+  width: 100%;
+  text-align: center;
+}
+.finish-nums-review p {
+  font-weight: 700;
+  font-size: clamp(12px, 3vw, 15px);
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.finish-nums-review .num-line {
+  font-weight: 900;
+  font-size: clamp(16px, 4vw, 22px);
+  color: var(--text);
+}
+
+/* ===== coin 飘字 ===== */
+.coin-float {
+  position: fixed;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--duo-yellow);
+  pointer-events: none;
+  z-index: 9999;
+  animation: coin-fly 0.8s ease both;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.star-particle {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  animation: star-burst 0.6s ease both;
+}
+
+/* ===== Say it again 按钮 ===== */
+.repeat-btn {
+  background: var(--duo-yellow);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-weight: 900;
+  font-size: clamp(11px, 3vw, 14px);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--duo-yellow-dark);
+  touch-action: manipulation;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.repeat-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--duo-yellow-dark); }
+
+/* ===== 状态提示 ===== */
+.status-msg {
+  font-weight: 700;
+  font-size: clamp(12px, 3vw, 15px);
+  color: var(--text-light);
+  text-align: center;
+  flex-shrink: 0;
+  min-height: 1.4em;
+}
+.status-msg.listening {
+  color: var(--duo-blue);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== INTRO 屏 ===== -->
+  <div id="screen-intro" class="screen active">
+    <div class="intro-inner">
+      <div class="intro-badge">U2L4 · Merry English Lab</div>
+      <div class="intro-title">📦 Fido 的快递柜</div>
+      <div class="intro-card">
+        <div class="intro-sentence">What's your<br><span style="color:var(--duo-blue)">phone number?</span></div>
+        <div class="intro-sub">听英语 · 按数字 · 学句型</div>
+      </div>
+      <div class="intro-levels">
+        <div class="level-pill active">关 0 · 热身</div>
+        <div class="level-pill">关 1 · Fido</div>
+        <div class="level-pill">关 2 · YangMing</div>
+        <div class="level-pill">关 3 · 火警</div>
+      </div>
+    </div>
+    <div class="btn-area">
+      <button class="btn-duo green" onclick="startGame()">🐶 开始！</button>
+    </div>
+  </div>
+
+  <!-- ===== 关 0：热身 warmup ===== -->
+  <div id="screen-warmup" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">关 0</div>
+      <div class="hud-title">数字热身</div>
+      <div class="hud-score" id="score-display">⭐ 0</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-track"><div class="progress-fill" id="warmup-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="scene">
+      <div class="warmup-label">点泡泡 → 听英语！</div>
+      <div class="warmup-subtitle">10 个全点完才能取包裹 🎒</div>
+      <div class="bubble-grid" id="bubble-grid"></div>
+      <div class="warmup-progress" id="warmup-count">已点：0 / 10</div>
+    </div>
+  </div>
+
+  <!-- ===== 关 1：Fido 报号 ===== -->
+  <div id="screen-level1" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">关 1</div>
+      <div class="hud-title">Fido 报号码</div>
+      <div class="hud-score" id="score-l1">⭐ 0</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-track"><div class="progress-fill" id="l1-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="scene">
+      <!-- 对话框 -->
+      <div class="dialog-box">
+        <div class="dialog-speaker">📦 快递柜</div>
+        <div class="dialog-text">What's your <span class="hi">phone number</span>, Fido?</div>
+        <div style="font-size:clamp(13px,3vw,16px);color:#888;margin-top:6px;">你的电话号码是多少，Fido？</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:clamp(11px,2.5vw,13px);">
+          <span style="background:#F0F8FF;padding:3px 8px;border-radius:8px;"><b style="color:#1CB0F6;">phone</b> 电话 📞</span>
+          <span style="background:#F0F8FF;padding:3px 8px;border-radius:8px;"><b style="color:#1CB0F6;">number</b> 数字 🔢</span>
+          <span style="background:#FFFAE5;padding:3px 8px;border-radius:8px;"><b style="color:#FF9500;">phone number</b> 电话号码</span>
+          <span style="background:#E8F5E9;padding:3px 8px;border-radius:8px;"><b style="color:#58CC02;">It's ...</b> 是... ✨</span>
+        </div>
+      </div>
+
+      <!-- 角色 -->
+      <div class="character-row">
+        <div class="char-wrap" onclick="sayAgain()">
+          <div class="char-speech-bubble" id="fido-bubble">eight... one... seven...<br>Say it again!</div>
+          <div class="char-emoji">🐶</div>
+          <div class="char-name">Fido（点我重说）</div>
+        </div>
+        <div class="cabinet-emoji">📦</div>
+      </div>
+
+      <!-- 号码进度 -->
+      <div class="number-display" id="l1-number-display"></div>
+
+      <!-- 状态提示 -->
+      <div class="status-msg" id="l1-status">🔊 听 Fido 说第几个数字…</div>
+
+      <!-- 骨头键盘 -->
+      <div class="keyboard" id="keyboard-l1"></div>
+    </div>
+  </div>
+
+  <!-- ===== 关 2：YangMing 取件 ===== -->
+  <div id="screen-level2" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">关 2</div>
+      <div class="hud-title">帮 YangMing 取件</div>
+      <div class="hud-score" id="score-l2">⭐ 0</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-track"><div class="progress-fill" id="l2-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="scene">
+      <div class="dialog-box">
+        <div class="dialog-speaker">📦 快递柜</div>
+        <div class="dialog-text">What's your <span class="hi">phone number</span>, YangMing?</div>
+        <div style="font-size:clamp(13px,3vw,16px);color:#888;margin-top:6px;">你的电话号码是多少，YangMing？</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:clamp(11px,2.5vw,13px);">
+          <span style="background:#F0F8FF;padding:3px 8px;border-radius:8px;"><b style="color:#1CB0F6;">phone</b> 电话 📞</span>
+          <span style="background:#F0F8FF;padding:3px 8px;border-radius:8px;"><b style="color:#1CB0F6;">number</b> 数字 🔢</span>
+          <span style="background:#FFFAE5;padding:3px 8px;border-radius:8px;"><b style="color:#FF9500;">phone number</b> 电话号码</span>
+          <span style="background:#E8F5E9;padding:3px 8px;border-radius:8px;"><b style="color:#58CC02;">It's ...</b> 是... ✨</span>
+        </div>
+      </div>
+
+      <div class="character-row">
+        <div class="char-wrap" onclick="sayAgain2()">
+          <div class="char-speech-bubble" id="ym-bubble">one... three... five...</div>
+          <div class="char-emoji">👦</div>
+          <div class="char-name">YangMing（点我重说）</div>
+        </div>
+        <div class="cabinet-emoji">📦</div>
+      </div>
+
+      <div class="number-display" id="l2-number-display"></div>
+      <div class="status-msg" id="l2-status">🔊 听 YangMing 报号…</div>
+      <div class="keyboard" id="keyboard-l2"></div>
+    </div>
+  </div>
+
+  <!-- ===== 关 3：火警应急 ===== -->
+  <div id="screen-level3" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">关 3</div>
+      <div class="hud-title">🚒 应急！</div>
+      <div class="hud-score" id="score-l3">⭐ 0</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-track"><div class="progress-fill" id="l3-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="scene">
+      <div class="fire-banner" id="fire-banner">🔥 Fire! 快打电话！</div>
+      <div class="dialog-box" id="fire-dialog">
+        <div class="dialog-speaker">📢 紧急广播</div>
+        <div class="dialog-text" id="fire-dialog-text">🔊 听：one... one... nine！按下去！</div>
+      </div>
+
+      <div class="character-row">
+        <div class="char-emoji" style="font-size:clamp(44px,14vw,80px);animation:float 2s ease-in-out infinite;">🚒</div>
+        <div class="char-emoji" style="font-size:clamp(36px,10vw,60px);">🐶</div>
+      </div>
+
+      <div class="number-display" id="l3-number-display"></div>
+      <div class="status-msg" id="l3-status" style="color:var(--duo-red);font-weight:900;">🔊 听到数字就按！</div>
+      <div class="keyboard" id="keyboard-l3"></div>
+
+      <div class="emergency-nums" id="emergency-nums" style="display:none;">
+        <div class="emergency-pill">🔥 119 · one one nine</div>
+        <div class="emergency-pill">🏥 120 · one two zero</div>
+        <div class="emergency-pill">👮 110 · one one zero</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 屏 A · 知识总结（两题同页拖拽）===== -->
+  <div id="screen-summary" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">📝</div>
+      <div class="hud-title">知识总结</div>
+      <div class="hud-score">⭐ <span id="summary-score-disp">0</span></div>
+    </div>
+    <div class="scene" style="padding:12px 14px;gap:10px;overflow:hidden;">
+      <!-- 题 1 -->
+      <div style="background:#F7F7F7;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:clamp(14px,3.2vw,17px);font-weight:700;color:#333;">📌 你的电话号码是多少？</div>
+        <div id="sum-q1-slots" style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;align-items:center;min-height:38px;"></div>
+        <div id="sum-q1-bank" style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;"></div>
+        <div id="sum-q1-success" style="display:none;color:var(--duo-green-dark);font-weight:700;text-align:center;font-size:clamp(13px,3vw,15px);">✓ What's your phone number? 🔊</div>
+      </div>
+      <!-- 题 2 -->
+      <div style="background:#F7F7F7;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:clamp(14px,3.2vw,17px);font-weight:700;color:#333;">📌 我的电话号码是 8-1-7-2-6-9-5-3</div>
+        <div id="sum-q2-slots" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;min-height:38px;"></div>
+        <div id="sum-q2-bank" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;"></div>
+        <div id="sum-q2-success" style="display:none;color:var(--duo-green-dark);font-weight:700;text-align:center;font-size:clamp(13px,3vw,15px);">✓ It's 8-1-7-2-6-9-5-3 🔊</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 屏 B · 评论钩子 ===== -->
+  <div id="screen-comment" class="screen">
+    <div class="hud-bar">
+      <div class="hud-badge">💬</div>
+      <div class="hud-title">课后练习</div>
+      <div class="hud-score">⭐ <span id="comment-score-disp">0</span></div>
+    </div>
+    <div class="scene" style="padding:14px 16px;gap:12px;overflow:hidden;">
+      <div style="text-align:center;font-weight:900;color:#333;font-size:clamp(18px,4.4vw,22px);">📢 都学会了吗？</div>
+      <div style="text-align:center;color:#888;font-size:clamp(13px,3vw,15px);margin-top:-6px;">答案写评论区，我会回复每一个</div>
+      <div style="background:#F7F7F7;border-radius:14px;padding:12px 14px;">
+        <div style="font-weight:700;font-size:clamp(15px,3.5vw,17px);margin-bottom:8px;">1. What's your phone _____ ?</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:clamp(13px,3.2vw,15px);">
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">A.</b> number</div>
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">B.</b> name</div>
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">C.</b> book</div>
+        </div>
+      </div>
+      <div style="background:#F7F7F7;border-radius:14px;padding:12px 14px;">
+        <div style="font-weight:700;font-size:clamp(15px,3.5vw,17px);margin-bottom:8px;">2. _____ 8-1-7-2-6-9-5-3.</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:clamp(13px,3.2vw,15px);">
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">A.</b> I'm</div>
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">B.</b> It's</div>
+          <div style="background:white;padding:7px 12px;border-radius:10px;border:2px solid #E5E5E5;"><b style="color:#1CB0F6;">C.</b> You're</div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--duo-green-dark);font-weight:700;font-size:clamp(13px,3vw,15px);margin-top:auto;">💬 答案写评论区 · 明天点赞最多上墙</div>
+    </div>
+  </div>
+
+  <!-- ===== 屏 C · 关注页 ===== -->
+  <div id="screen-finish" class="screen">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px;text-align:center;">
+      <div style="font-size:clamp(60px,18vw,100px);">👩‍🏫</div>
+      <div style="font-size:clamp(22px,5.5vw,32px);font-weight:900;color:#333;">Merry 老师</div>
+      <div style="font-size:clamp(14px,3.4vw,18px);color:#666;line-height:1.6;">跟着课本学英语<br>📚 闽教版三上 · 持续更新</div>
+      <div style="background:#FFF8E1;border-radius:14px;padding:8px 16px;font-size:clamp(13px,3.2vw,16px);color:#FF9500;font-weight:700;">🎯 下一课：U2L5</div>
+      <button class="btn-duo green" style="margin-top:8px;font-size:clamp(15px,4vw,18px);padding:14px 32px;" onclick="restartGame()">+ 关注我，下条不错过</button>
+      <div style="font-size:clamp(13px,3vw,15px);color:#888;margin-top:6px;">本课得分 ⭐ <span id="finish-score">0</span></div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<!-- 烟花容器 -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- 反馈覆盖层 -->
+<div id="overlay-feedback">
+  <div class="fb-big-text" id="fb-big"></div>
+  <div class="fb-sub-text" id="fb-sub"></div>
+  <div class="fb-coin" id="fb-coin"></div>
+</div>
+
+<!-- 手动 Next 按钮 -->
+<div id="manual-next-btn">
+  <button class="next-btn-inner" id="next-btn-inner" onclick="handleNext()">继续 →</button>
+</div>
+
+<script>
+/* ========================================================
+   TTS 封装（复用 U2L3，rate=0.7 慢速）
+   ======================================================== */
+let ttsQueue = [];
+let ttsBusy = false;
+
+/* TTS mp3 映射表（edge-tts 预录，rate 已烘焙进 mp3）
+   OBS Browser Source 不支持 Web Speech API，改用 mp3 播放 */
+const TTS_MAP = {
+  "zero": "audio/zero.mp3", "one": "audio/one.mp3", "two": "audio/two.mp3",
+  "three": "audio/three.mp3", "four": "audio/four.mp3", "five": "audio/five.mp3",
+  "six": "audio/six.mp3", "seven": "audio/seven.mp3", "eight": "audio/eight.mp3",
+  "nine": "audio/nine.mp3",
+  "What's your phone number, Fido?": "audio/q_fido.mp3",
+  "What's your phone number, YangMing?": "audio/q_yangming.mp3",
+  "What's your phone number?": "audio/q_summary.mp3",
+  "It's eight, one, seven, two, six, nine, five, three!": "audio/a_fido.mp3",
+  "It's one, three, five, eight, two, seven!": "audio/a_yangming.mp3",
+  "It's eight, one, seven, two, six, nine, five, three": "audio/a_summary.mp3",
+  "It's eight": "audio/its_eight.mp3",
+  "It's one": "audio/its_one.mp3",
+  "着火了！快拨一一九！": "audio/zh_fire.mp3",
+  "一一九拨通了！火灭了！太棒了！": "audio/zh_119_done.mp3",
+  "谢谢观看！记得关注 Merry 老师哦": "audio/zh_thanks.mp3"
+};
+
+let _currentAudio = null;
+
+function speak(text, rate = 0.7, lang = 'en-US') {
+  return new Promise(resolve => {
+    const mp3 = TTS_MAP[text];
+    if (!mp3) {
+      console.warn('[speak] no mp3 for:', text);
+      resolve();
+      return;
+    }
+    // 打断前一个未播完的（避免叠音）
+    if (_currentAudio) { try { _currentAudio.pause(); } catch(e){} }
+    const audio = new Audio(mp3);
+    _currentAudio = audio;
+    audio.onended = () => { _currentAudio = null; resolve(); };
+    audio.onerror = () => { _currentAudio = null; resolve(); };
+    audio.play().catch(() => { _currentAudio = null; resolve(); });
+  });
+}
+
+async function speakSeq(items) {
+  /* items: [{text, rate?, pause?}] */
+  for (const item of items) {
+    await speak(item.text, item.rate || 0.7);
+    if (item.pause) await delay(item.pause);
+  }
+}
+
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/* ========================================================
+   游戏状态
+   ======================================================== */
+let score = 0;
+let currentLevel = 0; // 0=warmup,1=l1,2=l2,3=l3
+
+/* 关 1 Fido 号码：8 1 7 2 6 9 5 3 */
+const FIDO_NUM = [8, 1, 7, 2, 6, 9, 5, 3];
+const FIDO_WORDS = ['eight','one','seven','two','six','nine','five','three'];
+
+/* 关 2 YangMing 号码：1 3 5 8 2 7 */
+const YM_NUM = [1, 3, 5, 8, 2, 7];
+const YM_WORDS = ['one','three','five','eight','two','seven'];
+
+/* 关 3 火警：1 1 9 */
+const FIRE_NUM = [1, 1, 9];
+const FIRE_WORDS = ['one','one','nine'];
+
+const NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine'];
+
+/* 当前输入状态 */
+let currentSeq = [];    // 目标号码数组
+let currentWords = [];  // 对应英文单词
+let inputIndex = 0;     // 当前等待输入的位置
+let ttsIndex = 0;       // TTS 已报到第几位
+let isSpeaking = false;
+let levelComplete = false;
+
+/* ========================================================
+   工具：烟花
+   ======================================================== */
+function launchConfetti() {
+  const c = document.getElementById('confetti-container');
+  const colors = ['#58CC02','#FFC800','#1CB0F6','#FF4B4B','#CE82FF','#FF9500'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.style.cssText = `
+      position:absolute;
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>0.5?'50%':'3px'};
+      left:${Math.random()*100}%;
+      top:-10px;
+      --tx:${-80+Math.random()*160}px;
+      --rot:${Math.random()*720}deg;
+      animation:confetti-fall ${1.2+Math.random()*1.2}s ease-out ${Math.random()*0.5}s both;
+    `;
+    c.appendChild(el);
+  }
+  setTimeout(() => c.innerHTML = '', 3000);
+}
+
+/* ========================================================
+   工具：反馈覆盖层（复用 U2L3）
+   ======================================================== */
+function showFeedback(type, big, sub, coin, onDone) {
+  const ov = document.getElementById('overlay-feedback');
+  document.getElementById('fb-big').textContent = big;
+  document.getElementById('fb-sub').textContent = sub;
+  document.getElementById('fb-coin').textContent = coin || '';
+  ov.className = `show ${type}-fb`;
+  setTimeout(() => {
+    ov.className = '';
+    if (onDone) onDone();
+  }, 1600);
+}
+
+/* ========================================================
+   工具：Next 按钮
+   ======================================================== */
+let nextAction = null;
+function showNextBtn(label, action) {
+  nextAction = action;
+  const btn = document.getElementById('manual-next-btn');
+  document.getElementById('next-btn-inner').textContent = label || '继续 →';
+  btn.classList.add('show');
+}
+function hideNextBtn() {
+  document.getElementById('manual-next-btn').classList.remove('show');
+  nextAction = null;
+}
+function handleNext() {
+  const action = nextAction;
+  hideNextBtn();
+  if (action) action();
+}
+
+/* ========================================================
+   工具：得分 + 星星飘
+   ======================================================== */
+function addScore(pts) {
+  score += pts;
+  ['score-display','score-l1','score-l2','score-l3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = '⭐ ' + score; el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),350); }
+  });
+  document.getElementById('finish-score').textContent = '⭐ ' + score;
+}
+
+/* ========================================================
+   工具：键盘渲染（骨头大键 + 下方小字英文）
+   ======================================================== */
+function buildKeyboard(containerId, onPress) {
+  const kb = document.getElementById(containerId);
+  kb.innerHTML = '';
+  // 0-9 共 10 键，排 5 列 2 行（或用 0-4 / 5-9）
+  for (let n = 0; n <= 9; n++) {
+    const key = document.createElement('button');
+    key.className = 'key';
+    key.id = `${containerId}-key-${n}`;
+    key.innerHTML = `<span class="key-num">${n}</span><span class="key-word">${NUM_WORDS[n]}</span>`;
+    key.addEventListener('click', () => onPress(n, key));
+    key.style.animationDelay = `${n * 0.03}s`;
+    kb.appendChild(key);
+  }
+}
+
+/* ========================================================
+   关卡切换
+   ======================================================== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  score = 0;
+  addScore(0);
+  showScreen('screen-warmup');
+  initWarmup();
+}
+
+function restartGame() {
+  score = 0;
+  addScore(0);
+  hideNextBtn();
+  showScreen('screen-intro');
+}
+
+/* ========================================================
+   关 0：热身 — 10 个数字泡泡
+   ======================================================== */
+let warmupTapped = 0;
+
+function initWarmup() {
+  warmupTapped = 0;
+  document.getElementById('warmup-count').textContent = '已点：0 / 10';
+  document.getElementById('warmup-progress-fill').style.width = '0%';
+
+  const grid = document.getElementById('bubble-grid');
+  grid.innerHTML = '';
+
+  // 打乱 1-10 顺序
+  const nums = [1,2,3,4,5,6,7,8,9,10];
+  nums.sort(() => Math.random() - 0.5);
+
+  nums.forEach((n, i) => {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = n === 10 ? '10' : n;
+    b.style.animationDelay = `${i * 0.06}s`;
+    b.addEventListener('click', () => onBubbleTap(b, n));
+    grid.appendChild(b);
+  });
+}
+
+function onBubbleTap(el, n) {
+  if (el.classList.contains('tapped')) return;
+  el.classList.add('tapped');
+  warmupTapped++;
+
+  // TTS 朗读
+  const word = n === 10 ? 'ten' : NUM_WORDS[n];
+  speak(word, 0.7);
+
+  document.getElementById('warmup-count').textContent = `已点：${warmupTapped} / 10`;
+  document.getElementById('warmup-progress-fill').style.width = `${warmupTapped * 10}%`;
+
+  addScore(2);
+
+  if (warmupTapped === 10) {
+    setTimeout(() => {
+      showFeedback('green', '🎉 全部认识了！', '出发去取包裹！', '🦴', () => {
+        showScreen('screen-level1');
+        initLevel1();
+      });
+    }, 400);
+  }
+}
+
+/* ========================================================
+   关 1：Fido 报号 → 孩子听写
+   ======================================================== */
+let l1Input = [];
+let l1SayIndex = 0; // Fido 已说到第几位（0-indexed）
+let l1Locked = false;
+
+function initLevel1() {
+  l1Input = [];
+  l1SayIndex = 0;
+  l1Locked = false;
+  inputIndex = 0;
+  document.getElementById('l1-progress-fill').style.width = '0%';
+
+  buildKeyboard('keyboard-l1', onL1Press);
+  renderL1Display();
+  setL1Status('🔊 Fido 正在报号，仔细听…', false);
+
+  // 先 TTS 朗读整句 Q（让孩子听到完整问句）
+  speak("What's your phone number, Fido?", 0.7);
+
+  // 显示 Fido 气泡
+  showFidoBubble("What's my number?");
+
+  // 延迟到整句念完后，再开始逐位报号
+  setTimeout(() => speakL1FromIndex(0), 3500);
+}
+
+function renderL1Display() {
+  const d = document.getElementById('l1-number-display');
+  d.innerHTML = '';
+  FIDO_NUM.forEach((n, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'num-slot';
+    slot.id = `l1-slot-${i}`;
+    if (i < l1Input.length) {
+      slot.textContent = l1Input[i];
+      slot.classList.add('filled');
+    } else if (i === l1Input.length) {
+      slot.classList.add('active');
+    }
+    d.appendChild(slot);
+  });
+}
+
+async function speakL1FromIndex(startIdx) {
+  if (isSpeaking) return;
+  isSpeaking = true;
+  l1SayIndex = startIdx;
+
+  // Fido 说号码，从 startIdx 开始
+  for (let i = startIdx; i < FIDO_NUM.length; i++) {
+    if (i > l1Input.length) break; // 只说到下一个待输入位+一个
+    l1SayIndex = i;
+    // 第 1 位带上 It's，让孩子听到完整 A 句开头
+    const sayText = (i === 0 && l1Input.length === 0) ? `It's ${FIDO_WORDS[i]}` : FIDO_WORDS[i];
+    const bubbleText = (i === 0 && l1Input.length === 0) ? `"It's ${FIDO_WORDS[i]}"...` : `"${FIDO_WORDS[i]}"...`;
+    setL1Status(`🔊 第 ${i + 1} 位：${sayText}…`, true);
+    showFidoBubble(bubbleText);
+    await speak(sayText, 0.7);
+    await delay(1800); // 等孩子按键
+    if (l1Input.length > i) break; // 已按了这位，继续下一位
+    // 若没按，继续说下一位（但保留当前位等待）
+  }
+  isSpeaking = false;
+}
+
+function showFidoBubble(text) {
+  const b = document.getElementById('fido-bubble');
+  b.textContent = text;
+  b.classList.add('show');
+  clearTimeout(showFidoBubble._timer);
+  showFidoBubble._timer = setTimeout(() => b.classList.remove('show'), 3000);
+}
+
+function setL1Status(text, listening) {
+  const s = document.getElementById('l1-status');
+  s.textContent = text;
+  s.className = listening ? 'status-msg listening' : 'status-msg';
+}
+
+function sayAgain() {
+  if (l1Locked) return;
+  // 重说当前位
+  const idx = l1Input.length;
+  if (idx >= FIDO_NUM.length) return;
+  setL1Status(`🔄 Fido 再说一遍：${FIDO_WORDS[idx]}…`, true);
+  showFidoBubble(`"${FIDO_WORDS[idx]}"...`);
+  speak(FIDO_WORDS[idx], 0.65);
+}
+
+function onL1Press(n, keyEl) {
+  if (l1Locked) return;
+  const idx = l1Input.length;
+  if (idx >= FIDO_NUM.length) return;
+
+  keyEl.style.animation = '';
+  void keyEl.offsetWidth;
+
+  if (n === FIDO_NUM[idx]) {
+    // 正确
+    l1Input.push(n);
+    keyEl.style.animation = 'key-press 0.2s ease';
+    addScore(5);
+
+    renderL1Display();
+    const pct = (l1Input.length / FIDO_NUM.length) * 100;
+    document.getElementById('l1-progress-fill').style.width = pct + '%';
+
+    if (l1Input.length === FIDO_NUM.length) {
+      // 全对！
+      l1Locked = true;
+      setL1Status('🎊 全输完了！It\'s 8-1-7-2-6-9-5-3!', false);
+      launchConfetti();
+      addScore(20);
+
+      setTimeout(async () => {
+        await speak("It's eight, one, seven, two, six, nine, five, three!", 0.75);
+        showFeedback('green', '🦴 Perfect!', "It's 8-1-7-2-6-9-5-3", '🎉', () => {
+          showNextBtn('下一关 →', () => {
+            showScreen('screen-level2');
+            initLevel2();
+          });
+        });
+      }, 400);
+    } else {
+      // 继续说下一位
+      const nextIdx = l1Input.length;
+      if (nextIdx < FIDO_NUM.length) {
+        setTimeout(() => {
+          setL1Status(`🔊 第 ${nextIdx + 1} 位：${FIDO_WORDS[nextIdx]}…`, true);
+          showFidoBubble(`"${FIDO_WORDS[nextIdx]}"...`);
+          speak(FIDO_WORDS[nextIdx], 0.7);
+        }, 400);
+      }
+    }
+  } else {
+    // 错误：闪烁正确键 + Fido 慢速重说
+    keyEl.style.animation = 'wrong-flash 0.4s ease';
+    const correctKey = document.getElementById(`keyboard-l1-key-${FIDO_NUM[idx]}`);
+    if (correctKey) {
+      correctKey.style.animation = '';
+      void correctKey.offsetWidth;
+      correctKey.style.animation = 'key-hint-flash 0.6s ease-in-out 2';
+    }
+    setL1Status(`❌ 再仔细听：${FIDO_WORDS[idx]}`, true);
+    speak(FIDO_WORDS[idx], 0.6);
+    showFidoBubble(`"${FIDO_WORDS[idx]}"... again!`);
+  }
+}
+
+/* ========================================================
+   关 2：YangMing 取件（同玩法，换号码）
+   ======================================================== */
+let l2Input = [];
+let l2Locked = false;
+
+function initLevel2() {
+  l2Input = [];
+  l2Locked = false;
+  document.getElementById('l2-progress-fill').style.width = '0%';
+
+  buildKeyboard('keyboard-l2', onL2Press);
+  renderL2Display();
+  setL2Status('🔊 YangMing 正在报号，仔细听…', false);
+
+  // 先朗读整句 Q（让孩子听到完整问句）
+  speak("What's your phone number, YangMing?", 0.7);
+
+  showYMBubble("What's my number?");
+  setTimeout(() => speakL2FromIndex(0), 3800);
+}
+
+function renderL2Display() {
+  const d = document.getElementById('l2-number-display');
+  d.innerHTML = '';
+  YM_NUM.forEach((n, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'num-slot';
+    slot.id = `l2-slot-${i}`;
+    if (i < l2Input.length) {
+      slot.textContent = l2Input[i];
+      slot.classList.add('filled');
+    } else if (i === l2Input.length) {
+      slot.classList.add('active');
+    }
+    d.appendChild(slot);
+  });
+}
+
+async function speakL2FromIndex(startIdx) {
+  if (isSpeaking) return;
+  isSpeaking = true;
+  for (let i = startIdx; i < YM_NUM.length; i++) {
+    if (i > l2Input.length) break;
+    // 第 1 位带 It's 让孩子听到完整 A 句开头
+    const sayText = (i === 0 && l2Input.length === 0) ? `It's ${YM_WORDS[i]}` : YM_WORDS[i];
+    const bubbleText = (i === 0 && l2Input.length === 0) ? `"It's ${YM_WORDS[i]}"...` : `"${YM_WORDS[i]}"...`;
+    setL2Status(`🔊 第 ${i + 1} 位：${sayText}…`, true);
+    showYMBubble(bubbleText);
+    await speak(sayText, 0.7);
+    await delay(1800);
+    if (l2Input.length > i) break;
+  }
+  isSpeaking = false;
+}
+
+function showYMBubble(text) {
+  const b = document.getElementById('ym-bubble');
+  b.textContent = text;
+  b.classList.add('show');
+  clearTimeout(showYMBubble._timer);
+  showYMBubble._timer = setTimeout(() => b.classList.remove('show'), 3000);
+}
+
+function setL2Status(text, listening) {
+  const s = document.getElementById('l2-status');
+  s.textContent = text;
+  s.className = listening ? 'status-msg listening' : 'status-msg';
+}
+
+function sayAgain2() {
+  if (l2Locked) return;
+  const idx = l2Input.length;
+  if (idx >= YM_NUM.length) return;
+  setL2Status(`🔄 YangMing 再说：${YM_WORDS[idx]}…`, true);
+  showYMBubble(`"${YM_WORDS[idx]}"... again!`);
+  speak(YM_WORDS[idx], 0.65);
+}
+
+function onL2Press(n, keyEl) {
+  if (l2Locked) return;
+  const idx = l2Input.length;
+  if (idx >= YM_NUM.length) return;
+
+  keyEl.style.animation = '';
+  void keyEl.offsetWidth;
+
+  if (n === YM_NUM[idx]) {
+    l2Input.push(n);
+    keyEl.style.animation = 'key-press 0.2s ease';
+    addScore(5);
+    renderL2Display();
+    document.getElementById('l2-progress-fill').style.width = (l2Input.length / YM_NUM.length * 100) + '%';
+
+    if (l2Input.length === YM_NUM.length) {
+      l2Locked = true;
+      setL2Status('🎊 全输完了！It\'s 1-3-5-8-2-7!', false);
+      launchConfetti();
+      addScore(20);
+
+      setTimeout(async () => {
+        await speak("It's one, three, five, eight, two, seven!", 0.75);
+        showFeedback('green', '🎊 Awesome!', "It's 1-3-5-8-2-7", '🎉', () => {
+          showNextBtn('最后一关 →', () => {
+            showScreen('screen-level3');
+            initLevel3();
+          });
+        });
+      }, 400);
+    } else {
+      const nextIdx = l2Input.length;
+      setTimeout(() => {
+        setL2Status(`🔊 第 ${nextIdx + 1} 位：${YM_WORDS[nextIdx]}…`, true);
+        showYMBubble(`"${YM_WORDS[nextIdx]}"...`);
+        speak(YM_WORDS[nextIdx], 0.7);
+      }, 400);
+    }
+  } else {
+    keyEl.style.animation = 'wrong-flash 0.4s ease';
+    const correctKey = document.getElementById(`keyboard-l2-key-${YM_NUM[idx]}`);
+    if (correctKey) {
+      correctKey.style.animation = '';
+      void correctKey.offsetWidth;
+      correctKey.style.animation = 'key-hint-flash 0.6s ease-in-out 2';
+    }
+    setL2Status(`❌ 再仔细听：${YM_WORDS[idx]}`, true);
+    speak(YM_WORDS[idx], 0.6);
+    showYMBubble(`"${YM_WORDS[idx]}"... again!`);
+  }
+}
+
+/* ========================================================
+   关 3：火警应急
+   ======================================================== */
+let l3Input = [];
+let l3Locked = false;
+
+async function initLevel3() {
+  l3Input = [];
+  l3Locked = false;
+  document.getElementById('l3-progress-fill').style.width = '0%';
+  document.getElementById('screen-level3').classList.add('fire-active');
+  document.getElementById('emergency-nums').style.display = 'none';
+
+  buildKeyboard('keyboard-l3', onL3Press);
+  renderL3Display();
+  document.getElementById('l3-status').textContent = '🔊 听紧急广播，按出号码！';
+
+  // 播放紧急声音+说号码
+  await delay(600);
+  document.getElementById('fire-dialog-text').textContent = '🔊 着火了！快拨 119！';
+  await speak('着火了！快拨一一九！', 0.85, 'zh-CN');
+  await delay(500);
+  // 逐位再说一遍
+  await speakL3FromIndex(0);
+}
+
+function renderL3Display() {
+  const d = document.getElementById('l3-number-display');
+  d.innerHTML = '';
+  FIRE_NUM.forEach((n, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'num-slot';
+    slot.id = `l3-slot-${i}`;
+    if (i < l3Input.length) {
+      slot.textContent = l3Input[i];
+      slot.classList.add('filled');
+    } else if (i === l3Input.length) {
+      slot.classList.add('active');
+    }
+    d.appendChild(slot);
+  });
+}
+
+async function speakL3FromIndex(startIdx) {
+  if (isSpeaking) return;
+  isSpeaking = true;
+  for (let i = startIdx; i < FIRE_NUM.length; i++) {
+    if (i > l3Input.length) break;
+    document.getElementById('l3-status').textContent = `🔊 第 ${i + 1} 位：${FIRE_WORDS[i]}`;
+    await speak(FIRE_WORDS[i], 0.75);
+    await delay(1800);
+    if (l3Input.length > i) break;
+  }
+  isSpeaking = false;
+}
+
+function onL3Press(n, keyEl) {
+  if (l3Locked) return;
+  const idx = l3Input.length;
+  if (idx >= FIRE_NUM.length) return;
+
+  keyEl.style.animation = '';
+  void keyEl.offsetWidth;
+
+  if (n === FIRE_NUM[idx]) {
+    l3Input.push(n);
+    keyEl.style.animation = 'key-press 0.2s ease';
+    addScore(5);
+    renderL3Display();
+    document.getElementById('l3-progress-fill').style.width = (l3Input.length / FIRE_NUM.length * 100) + '%';
+
+    if (l3Input.length === FIRE_NUM.length) {
+      // 成功！
+      l3Locked = true;
+      document.getElementById('screen-level3').classList.remove('fire-active');
+      document.getElementById('fire-banner').textContent = '✅ 119 拨通了！';
+      document.getElementById('fire-dialog-text').textContent = '🚒 消防车来了！';
+
+      launchConfetti();
+      addScore(30);
+
+      // 显示彩蛋
+      document.getElementById('emergency-nums').style.display = 'flex';
+
+      setTimeout(async () => {
+        await speak('一一九拨通了！火灭了！太棒了！', 0.85, 'zh-CN');
+        // 当页内嵌反馈：banner 已显示消防车来了，烟花已 launch
+        showNextBtn('📝 知识总结 →', () => {
+          showScreen('screen-summary');
+          initSummary();
+        });
+      }, 600);
+    } else {
+      const nextIdx = l3Input.length;
+      setTimeout(() => {
+        document.getElementById('l3-status').textContent = `🔊 第 ${nextIdx + 1} 位：${FIRE_WORDS[nextIdx]}`;
+        speak(FIRE_WORDS[nextIdx], 0.75);
+      }, 400);
+    }
+  } else {
+    keyEl.style.animation = 'wrong-flash 0.4s ease';
+    const correctKey = document.getElementById(`keyboard-l3-key-${FIRE_NUM[idx]}`);
+    if (correctKey) {
+      correctKey.style.animation = '';
+      void correctKey.offsetWidth;
+      correctKey.style.animation = 'key-hint-flash 0.6s ease-in-out 2';
+    }
+    document.getElementById('l3-status').textContent = `❌ 再听：${FIRE_WORDS[idx]}!`;
+    speak(FIRE_WORDS[idx], 0.65);
+  }
+}
+
+/* ========================================================
+   屏 A · 知识总结：两题拖拽（点击式）
+   ======================================================== */
+const SUM_Q1_TARGET = ["What's", "your", "phone", "number"];
+const SUM_Q1_BANK   = ["your", "phone", "What's", "number"];
+const SUM_Q2_TARGET = ["It's", "8", "1", "7", "2", "6", "9", "5", "3"];
+const SUM_Q2_BANK   = ["5", "It's", "3", "8", "9", "2", "6", "1", "7"];
+let sumQ1Filled = [];
+let sumQ2Filled = [];
+let sumQ1Used = []; // bank 索引已使用
+let sumQ2Used = [];
+let sumQ1Done = false;
+let sumQ2Done = false;
+
+function initSummary() {
+  sumQ1Filled = []; sumQ2Filled = [];
+  sumQ1Used = []; sumQ2Used = [];
+  sumQ1Done = false; sumQ2Done = false;
+  document.getElementById('sum-q1-success').style.display = 'none';
+  document.getElementById('sum-q2-success').style.display = 'none';
+  document.getElementById('summary-score-disp').textContent = score;
+  renderSumQ(1);
+  renderSumQ(2);
+}
+
+function renderSumQ(qNum) {
+  const target = qNum === 1 ? SUM_Q1_TARGET : SUM_Q2_TARGET;
+  const bank = qNum === 1 ? SUM_Q1_BANK : SUM_Q2_BANK;
+  const filled = qNum === 1 ? sumQ1Filled : sumQ2Filled;
+  const used = qNum === 1 ? sumQ1Used : sumQ2Used;
+  const slotsEl = document.getElementById(`sum-q${qNum}-slots`);
+  const bankEl = document.getElementById(`sum-q${qNum}-bank`);
+
+  // 渲染答题框
+  slotsEl.innerHTML = '';
+  target.forEach((t, i) => {
+    const slot = document.createElement('div');
+    slot.style.cssText = 'min-width:32px;height:32px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 8px;font-weight:700;font-size:clamp(12px,2.9vw,15px);background:white;';
+    if (i < filled.length) {
+      slot.textContent = filled[i];
+      slot.style.borderStyle = 'solid';
+      slot.style.borderColor = 'var(--duo-green)';
+      slot.style.background = '#E8F5E9';
+      slot.style.color = 'var(--duo-green-dark)';
+      slot.style.animation = 'pop-in 0.3s ease';
+    }
+    slotsEl.appendChild(slot);
+  });
+  if (qNum === 1) {
+    const q = document.createElement('div');
+    q.textContent = '?';
+    q.style.cssText = 'font-size:clamp(16px,4vw,20px);font-weight:900;color:#333;align-self:center;';
+    slotsEl.appendChild(q);
+  }
+
+  // 渲染词块
+  bankEl.innerHTML = '';
+  bank.forEach((word, bi) => {
+    const btn = document.createElement('button');
+    btn.textContent = word;
+    btn.style.cssText = 'min-width:32px;padding:6px 12px;border:2px solid var(--duo-blue);border-radius:10px;background:white;color:var(--duo-blue);font-weight:700;font-size:clamp(12px,2.9vw,15px);cursor:pointer;transition:all 0.2s;';
+    if (used.includes(bi)) {
+      btn.style.opacity = '0.25';
+      btn.disabled = true;
+    } else {
+      btn.onclick = () => onSumWordClick(qNum, word, btn, bi);
+    }
+    bankEl.appendChild(btn);
+  });
+}
+
+function onSumWordClick(qNum, word, btnEl, bi) {
+  const target = qNum === 1 ? SUM_Q1_TARGET : SUM_Q2_TARGET;
+  const filled = qNum === 1 ? sumQ1Filled : sumQ2Filled;
+  const used = qNum === 1 ? sumQ1Used : sumQ2Used;
+  const nextIdx = filled.length;
+  if (nextIdx >= target.length) return;
+
+  if (word === target[nextIdx]) {
+    filled.push(word);
+    used.push(bi);
+    addScore(5);
+    document.getElementById('summary-score-disp').textContent = score;
+    if (typeof playMatch === 'function') playMatch();
+    renderSumQ(qNum);
+
+    if (filled.length === target.length) {
+      // 这题全对 - 当页内嵌反馈（小烟花 + 绿勾 + TTS）
+      if (qNum === 1) {
+        sumQ1Done = true;
+        document.getElementById('sum-q1-success').style.display = 'block';
+        speak("What's your phone number?", 0.75);
+      } else {
+        sumQ2Done = true;
+        document.getElementById('sum-q2-success').style.display = 'block';
+        setTimeout(() => speak("It's eight, one, seven, two, six, nine, five, three", 0.75), 400);
+      }
+      launchConfetti();
+      if (sumQ1Done && sumQ2Done) {
+        setTimeout(() => {
+          showNextBtn('下一页 →', () => {
+            showScreen('screen-comment');
+            initComment();
+          });
+        }, 1500);
+      }
+    }
+  } else {
+    btnEl.style.animation = 'wrong-flash 0.4s ease';
+    setTimeout(() => btnEl.style.animation = '', 500);
+    if (typeof playWrong === 'function') playWrong();
+  }
+}
+
+/* ========================================================
+   屏 B · 评论钩子：纯展示，进入直接 Next
+   ======================================================== */
+function initComment() {
+  document.getElementById('comment-score-disp').textContent = score;
+  setTimeout(() => {
+    showNextBtn('看完啦 →', () => {
+      showScreen('screen-finish');
+      initFollow();
+    });
+  }, 600);
+}
+
+/* ========================================================
+   屏 C · 关注页：当页烟花 + 中文 TTS
+   ======================================================== */
+function initFollow() {
+  document.getElementById('finish-score').textContent = score;
+  launchConfetti();
+  setTimeout(() => speak('谢谢观看！记得关注 Merry 老师哦', 0.85, 'zh-CN'), 600);
+}
+</script>
+</body>
+</html>
