@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>字母大冒险 · V3</title>
+<style>
+/* ════════════════════════════════════════
+   多邻国级字母游戏 V3（26 字母通用版）
+   配色：Duolingo Green #58CC02 主调
+   字体：系统圆体（PingFang / Avenir Next）
+   动画：cubic-bezier 弹性曲线
+   ════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* —— 多邻国主色板 —— */
+  --duo-green:   #58CC02;
+  --duo-green-d: #46A302;
+  --duo-orange:  #FF9600;
+  --duo-orange-d:#E08600;
+  --duo-blue:    #1CB0F6;
+  --duo-blue-d:  #0F8DC9;
+  --duo-yellow:  #FFC800;
+  --duo-red:     #FF4B4B;
+  --duo-purple:  #CE82FF;
+  /* —— 中性色 —— */
+  --bg:          #FAFAFA;
+  --bg-soft:     #FFF8E7;
+  --card:        #FFFFFF;
+  --text:        #3C3C3C;
+  --text-soft:   #777777;
+  --line:        #E5E5E5;
+  --shadow-card: 0 4px 0 rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  --shadow-btn:  0 4px 0 var(--duo-green-d);
+  font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Helvetica Neue",
+               "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  height: 100dvh;
+  background: var(--bg);
+  position: relative;
+}
+
+/* 屏幕容器 */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 4vw, 28px);
+}
+.screen.active { display: flex; animation: screen-in 0.35s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════
+   启动页
+   ════════════════════════════════════════ */
+#screen-start {
+  background: linear-gradient(180deg, #FAFAFA 0%, #FFF8E7 100%);
+  gap: clamp(14px, 3vh, 24px);
+}
+
+.start-mascot-row {
+  display: flex;
+  gap: clamp(10px, 3vw, 18px);
+  justify-content: center;
+  margin-bottom: clamp(4px, 1vh, 12px);
+}
+.start-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(54px, 14vw, 72px);
+  height: clamp(54px, 14vw, 72px);
+  border-radius: 18px;
+  font-size: clamp(28px, 7.5vw, 40px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.18);
+  animation: chip-bounce 2.2s cubic-bezier(.34,1.56,.64,1) infinite;
+}
+.start-chip:nth-child(1) { background: var(--duo-blue);   transform: rotate(-5deg); animation-delay: 0s;   }
+.start-chip:nth-child(2) { background: var(--duo-orange); transform: rotate(3deg);  animation-delay: 0.2s; }
+.start-chip:nth-child(3) { background: var(--duo-purple); transform: rotate(-4deg); animation-delay: 0.4s; }
+.start-chip:nth-child(4) { background: var(--duo-green);  transform: rotate(5deg);  animation-delay: 0.6s; }
+@keyframes chip-bounce {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50%       { transform: translateY(-8px); }
+}
+
+.start-title {
+  font-size: clamp(30px, 8vw, 48px);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1.1;
+  text-align: center;
+}
+.start-title em {
+  color: var(--duo-green);
+  font-style: normal;
+}
+.start-sub {
+  font-size: clamp(13px, 3.5vw, 17px);
+  color: var(--text-soft);
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+  max-width: 320px;
+}
+
+/* 多邻国风按钮：实色 + 下沉阴影边 */
+.btn-primary {
+  position: relative;
+  display: inline-block;
+  background: var(--duo-green);
+  color: #fff;
+  font-size: clamp(16px, 4.5vw, 20px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  border: none;
+  border-radius: 16px;
+  padding: clamp(14px, 3vh, 18px) clamp(40px, 12vw, 64px);
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--duo-green-d);
+  transition: transform 0.1s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.1s,
+              background 0.15s;
+  touch-action: manipulation;
+  text-transform: uppercase;
+}
+.btn-primary:hover  { background: #66D507; transform: translateY(-1px); box-shadow: 0 5px 0 var(--duo-green-d); }
+.btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--duo-green-d); }
+
+.btn-secondary {
+  background: #fff;
+  color: var(--duo-blue);
+  font-size: clamp(15px, 4vw, 18px);
+  font-weight: 800;
+  letter-spacing: 1px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(12px, 2.5vh, 14px) clamp(28px, 8vw, 40px);
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--line);
+  transition: transform 0.1s cubic-bezier(.34,1.56,.64,1), box-shadow 0.1s;
+  touch-action: manipulation;
+}
+.btn-secondary:hover  { transform: translateY(-1px); box-shadow: 0 5px 0 var(--line); }
+.btn-secondary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+
+.start-info {
+  display: flex;
+  gap: clamp(8px, 2vw, 14px);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: clamp(6px, 2vh, 16px);
+  max-width: 100%;
+  padding: 0 clamp(8px, 4vw, 20px);
+  box-sizing: border-box;
+}
+.start-info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: clamp(11px, 2.8vw, 13px);
+  color: var(--text-soft);
+  font-weight: 700;
+}
+.start-info-pill .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.dot-1 { background: var(--duo-green); }
+.dot-2 { background: var(--duo-orange); }
+.dot-3 { background: var(--duo-blue); }
+
+/* ════════════════════════════════════════
+   教学引导覆盖层
+   ════════════════════════════════════════ */
+#tutorial-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: clamp(20px, 6vw, 40px);
+  gap: clamp(14px, 3vh, 22px);
+}
+#tutorial-overlay.active { display: flex; animation: screen-in 0.35s cubic-bezier(.2,.9,.3,1.2); }
+.tutor-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: clamp(20px, 5vw, 36px);
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 2vh, 16px);
+}
+.tutor-title {
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 800;
+  color: var(--text);
+}
+.tutor-desc {
+  font-size: clamp(13px, 3.5vw, 15px);
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+.tutor-demo {
+  width: clamp(80px, 22vw, 110px);
+  height: clamp(80px, 22vw, 110px);
+  border-radius: 22px;
+  background: var(--duo-blue);
+  color: #fff;
+  font-size: clamp(48px, 13vw, 68px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 0 var(--duo-blue-d);
+  animation: tutor-pulse 1.6s cubic-bezier(.34,1.56,.64,1) infinite;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+@keyframes tutor-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+.tutor-target-hint {
+  font-size: clamp(14px, 3.5vw, 16px);
+  color: var(--text-soft);
+  font-weight: 700;
+}
+.tutor-target-hint b {
+  color: var(--duo-green);
+  font-size: 1.2em;
+}
+
+/* ════════════════════════════════════════
+   主游戏页
+   ════════════════════════════════════════ */
+#screen-game {
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0;
+  background: var(--bg-soft);
+}
+
+/* —— HUD 顶部 —— */
+.hud {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(10px, 2.5vw, 14px) clamp(8px, 2.5vw, 14px) clamp(6px, 1.5vh, 10px);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  gap: 6px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.hud-left { min-width: 0; flex-shrink: 1; overflow: hidden; max-width: 55%; }
+.hud-stats { flex-shrink: 0; }
+.hud-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(13px, 3.2vw, 16px);
+  font-weight: 800;
+  color: var(--text);
+}
+/* V3: 计时徽章（取代关卡 badge） */
+.hud-left .timer-badge {
+  background: var(--duo-blue);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: clamp(11px, 2.8vw, 13px);
+  font-weight: 800;
+  box-shadow: 0 2px 0 var(--duo-blue-d);
+  min-width: 40px;
+  text-align: center;
+}
+.hud-left .timer-badge.warn   { background: var(--duo-orange); box-shadow: 0 2px 0 var(--duo-orange-d); }
+.hud-left .timer-badge.danger { background: var(--duo-red);    box-shadow: 0 2px 0 #cc2c2c; }
+#session-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(11px, 2.8vw, 14px);
+}
+@media (max-width: 400px) {
+  #session-label { display: none; }
+  .hud-left { max-width: 40%; }
+}
+.hud-stats {
+  display: flex;
+  gap: clamp(6px, 1.8vw, 12px);
+  align-items: center;
+  flex-shrink: 0;
+}
+.hud-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: clamp(14px, 3.6vw, 18px);
+  font-weight: 800;
+  color: var(--text);
+  background: #FFF8DD;
+  border: 2px solid var(--duo-yellow);
+  border-radius: 10px;
+  padding: 2px 8px;
+  box-shadow: 0 2px 0 #E5B500;
+  white-space: nowrap;
+}
+.hud-score svg.star-svg {
+  width: clamp(14px, 3.6vw, 16px);
+  height: clamp(14px, 3.6vw, 16px);
+  flex-shrink: 0;
+}
+
+.hud-combo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: clamp(13px, 3.2vw, 16px);
+  font-weight: 800;
+  color: var(--duo-orange);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s cubic-bezier(.34,1.56,.64,1);
+  transform: scale(0.8);
+  white-space: nowrap;
+}
+.hud-combo.visible { opacity: 1; transform: scale(1); }
+.hud-combo.big {
+  color: var(--duo-red);
+  font-size: clamp(14px, 3.5vw, 18px);
+}
+.hud-combo .flame { font-size: 1.05em; line-height: 1; }
+
+/* —— 进度条（V3: 单局 180s 倒计时） —— */
+.progress-wrap {
+  width: 100%;
+  padding: 0 clamp(12px, 4vw, 20px) clamp(8px, 2vh, 12px);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.progress-bar {
+  width: 100%;
+  height: clamp(10px, 2.5vw, 14px);
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--duo-green);
+  width: 100%;
+  border-radius: 999px;
+  transition: width 1s linear, background 0.3s;
+  position: relative;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.12);
+}
+.progress-fill.warn   { background: var(--duo-orange); }
+.progress-fill.danger { background: var(--duo-red); }
+
+/* —— 目标区 —— */
+.target-zone {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 4vw, 20px);
+  padding: clamp(8px, 2vh, 14px) clamp(12px, 4vw, 20px);
+  background: #fff;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+}
+.target-label {
+  font-size: clamp(12px, 3vw, 14px);
+  color: var(--text-soft);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.target-letter-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(70px, 18vw, 100px);
+  height: clamp(56px, 14vw, 80px);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4F4F4 100%);
+  border: 3px solid var(--duo-green);
+  border-radius: 18px;
+  font-size: clamp(40px, 11vw, 64px);
+  font-weight: 800;
+  color: var(--duo-green);
+  letter-spacing: 0;
+  line-height: 1;
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: 0 3px 0 #DCDCDC;
+}
+.target-letter-box.pop {
+  transform: scale(1.18) rotate(-3deg);
+}
+
+.btn-sound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(44px, 12vw, 56px);
+  height: clamp(44px, 12vw, 56px);
+  background: var(--duo-blue);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--duo-blue-d);
+  transition: transform 0.1s cubic-bezier(.34,1.56,.64,1), box-shadow 0.1s;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+.btn-sound:hover  { transform: translateY(-1px); box-shadow: 0 5px 0 var(--duo-blue-d); }
+.btn-sound:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--duo-blue-d); }
+.btn-sound svg { width: 22px; height: 22px; }
+
+/* —— 游戏舞台 —— */
+.game-arena {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(88,204,2,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(28,176,246,0.05) 0%, transparent 50%),
+    var(--bg-soft);
+}
+
+/* —— 下落字母 chip —— */
+.falling-letter {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(56px, 15vw, 78px);
+  height: clamp(56px, 15vw, 78px);
+  border-radius: 18px;
+  color: #fff;
+  font-size: clamp(34px, 9vw, 46px);
+  font-weight: 800;
+  font-family: -apple-system, "Avenir Next", "PingFang SC", sans-serif;
+  letter-spacing: -1px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.18), 0 6px 14px rgba(0,0,0,0.1);
+  will-change: transform, top;
+  transition: filter 0.1s;
+}
+.falling-letter:hover { filter: brightness(1.1); }
+
+.falling-letter.hit {
+  animation: letter-pop 0.45s cubic-bezier(.34,1.8,.64,1) forwards;
+}
+.falling-letter.miss-shake {
+  animation: letter-headshake 0.28s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes letter-pop {
+  0%   { transform: scale(1) rotate(var(--tilt, 0deg)); }
+  35%  { transform: scale(1.55) rotate(0deg); }
+  70%  { transform: scale(1.2)  rotate(0deg); opacity: 0.85; }
+  100% { transform: scale(0)    rotate(0deg); opacity: 0; }
+}
+@keyframes letter-headshake {
+  0%   { transform: rotate(var(--tilt, 0deg)); }
+  20%  { transform: rotate(-8deg); }
+  50%  { transform: rotate(8deg); }
+  80%  { transform: rotate(-4deg); }
+  100% { transform: rotate(var(--tilt, 0deg)); }
+}
+
+/* —— +10 飘字 —— */
+.floaty-score {
+  position: absolute;
+  font-size: clamp(22px, 5.5vw, 32px);
+  font-weight: 800;
+  color: var(--duo-green);
+  text-shadow: 0 2px 0 #fff, 0 3px 8px rgba(0,0,0,0.15);
+  pointer-events: none;
+  animation: floaty-up 0.9s cubic-bezier(.2,.7,.4,1) forwards;
+  z-index: 99;
+}
+@keyframes floaty-up {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20%  { opacity: 1; transform: translate(-50%, -10px) scale(1.2); }
+  60%  { opacity: 1; transform: translate(-50%, -60px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -100px) scale(0.8); }
+}
+
+/* —— 粒子 —— */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  width: clamp(8px, 2vw, 12px);
+  height: clamp(8px, 2vw, 12px);
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* —— 鼓励语弹幕 —— */
+.cheer-text {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  font-size: clamp(28px, 7vw, 42px);
+  font-weight: 800;
+  color: var(--duo-green);
+  text-shadow: 0 3px 0 #fff, 0 4px 12px rgba(88,204,2,0.4);
+  pointer-events: none;
+  z-index: 150;
+  opacity: 0;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  animation: cheer-pop 0.85s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.cheer-text.combo { color: var(--duo-orange); text-shadow: 0 3px 0 #fff, 0 4px 12px rgba(255,150,0,0.4); }
+.cheer-text.combo-big { color: var(--duo-red); font-size: clamp(34px, 9vw, 52px); }
+@keyframes cheer-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  70%  { opacity: 1; transform: translate(-50%, -55%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -75%) scale(0.95); }
+}
+
+/* —— 温柔错误提示 —— */
+.miss-hint {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translate(-50%, -10px);
+  background: #fff;
+  color: var(--duo-orange);
+  font-size: clamp(14px, 3.5vw, 17px);
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 2px solid var(--duo-orange);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.08);
+  z-index: 140;
+  opacity: 0;
+  pointer-events: none;
+  animation: miss-hint-show 1.1s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes miss-hint-show {
+  0%   { opacity: 0; transform: translate(-50%, -10px); }
+  15%  { opacity: 1; transform: translate(-50%, 0); }
+  75%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -10px); }
+}
+
+/* ════════════════════════════════════════
+   3-2-1 倒计时
+   ════════════════════════════════════════ */
+#countdown-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,248,231,0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 250;
+}
+#countdown-overlay.active { display: flex; }
+.countdown-num {
+  font-size: clamp(120px, 32vw, 200px);
+  font-weight: 800;
+  color: var(--duo-green);
+  text-shadow: 0 8px 0 rgba(0,0,0,0.08);
+  animation: count-pop 1s cubic-bezier(.34,1.56,.64,1);
+}
+.countdown-num.go { color: var(--duo-orange); }
+@keyframes count-pop {
+  0%   { opacity: 0; transform: scale(0.3); }
+  30%  { opacity: 1; transform: scale(1.25); }
+  60%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* ════════════════════════════════════════
+   结束页
+   ════════════════════════════════════════ */
+#screen-end {
+  background: linear-gradient(180deg, #FFF8E7 0%, #FAFAFA 100%);
+  gap: clamp(12px, 3vh, 20px);
+}
+.end-card {
+  background: #fff;
+  border-radius: 28px;
+  padding: clamp(22px, 6vw, 40px) clamp(20px, 8vw, 44px);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  max-width: 380px;
+  width: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 2.5vh, 16px);
+}
+.end-stars {
+  display: flex;
+  gap: clamp(8px, 2.5vw, 14px);
+  margin-bottom: clamp(4px, 1vh, 8px);
+}
+.end-star {
+  width: clamp(44px, 12vw, 58px);
+  height: clamp(44px, 12vw, 58px);
+  opacity: 0;
+  transform: scale(0.3) rotate(-40deg);
+  transition: all 0.5s cubic-bezier(.34,1.8,.64,1);
+}
+.end-star.empty { opacity: 0.25; transform: scale(1) rotate(0); }
+.end-star.show  { opacity: 1; transform: scale(1) rotate(0); }
+.end-verdict {
+  font-size: clamp(24px, 6.5vw, 34px);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+}
+.end-score-big {
+  font-size: clamp(56px, 16vw, 84px);
+  font-weight: 800;
+  color: var(--duo-orange);
+  text-shadow: 0 4px 0 rgba(0,0,0,0.06);
+  line-height: 1;
+}
+.end-score-label {
+  font-size: clamp(12px, 3vw, 15px);
+  color: var(--text-soft);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: -4px;
+}
+.end-stats {
+  display: flex;
+  gap: clamp(14px, 4vw, 22px);
+  padding: clamp(10px, 2.5vh, 14px) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  width: 100%;
+  justify-content: center;
+}
+.end-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.end-stat-num {
+  font-size: clamp(18px, 4.5vw, 22px);
+  font-weight: 800;
+  color: var(--text);
+}
+.end-stat-num.green  { color: var(--duo-green); }
+.end-stat-num.orange { color: var(--duo-orange); }
+.end-stat-num.red    { color: var(--duo-red); }
+.end-stat-label {
+  font-size: clamp(11px, 2.8vw, 12px);
+  color: var(--text-soft);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.end-tip {
+  font-size: clamp(12px, 3vw, 14px);
+  color: var(--text-soft);
+  line-height: 1.6;
+  max-width: 280px;
+}
+.end-btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 2vh, 12px);
+  width: 100%;
+  align-items: center;
+  margin-top: clamp(4px, 1vh, 8px);
+}
+</style>
+</head>
+<body>
+
+<!-- ════ 启动页 ════ -->
+<div id="screen-start" class="screen active">
+  <div class="start-mascot-row">
+    <span class="start-chip">b</span>
+    <span class="start-chip">d</span>
+    <span class="start-chip">p</span>
+    <span class="start-chip">q</span>
+  </div>
+  <div class="start-title">字母大冒险</div>
+  <div class="start-sub">3 分钟挑战 · 听音找字母<br>26 字母全覆盖 · b / d / p / q 重点练</div>
+  <button class="btn-primary" onclick="onStartClick()">开始游戏</button>
+  <div class="start-info">
+    <span class="start-info-pill"><span class="dot dot-1"></span>26 字母全覆盖</span>
+    <span class="start-info-pill"><span class="dot dot-2"></span>重点字母 ×2.5</span>
+    <span class="start-info-pill"><span class="dot dot-3"></span>3 分钟一局</span>
+  </div>
+</div>
+
+<!-- ════ 教学引导（首次进入） ════ -->
+<div id="tutorial-overlay">
+  <div class="tutor-card">
+    <div class="tutor-title">玩法很简单</div>
+    <div class="tutor-target-hint">看到 <b id="tutor-target-hint-letter">b</b> 就点它</div>
+    <div class="tutor-demo" id="tutor-demo" onclick="onTutorDemo()">b</div>
+    <div class="tutor-desc">点一下试试 →</div>
+  </div>
+</div>
+
+<!-- ════ 主游戏页 ════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-left">
+      <span class="timer-badge" id="timer-badge">3:00</span>
+      <span id="session-label">26 字母挑战</span>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-combo" id="combo-display"><span class="flame">🔥</span><span id="combo-num">x0</span></div>
+      <div class="hud-score">
+        <svg class="star-svg" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9" fill="#FFC800" stroke="#E0AC00" stroke-width="1"/></svg>
+        <span id="score-display">0</span>
+      </div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="target-zone">
+    <span class="target-label">找这个 →</span>
+    <div class="target-letter-box" id="target-letter">b</div>
+    <button class="btn-sound" onclick="playTargetSound()" aria-label="播放发音">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>
+    </button>
+  </div>
+  <div class="game-arena" id="game-arena"></div>
+
+  <!-- 3-2-1 倒数 -->
+  <div id="countdown-overlay">
+    <div class="countdown-num" id="countdown-num">3</div>
+  </div>
+</div>
+
+<!-- ════ 结束页 ════ -->
+<div id="screen-end" class="screen">
+  <div class="end-card">
+    <div class="end-stars" id="end-stars-row">
+      <svg class="end-star empty" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9" fill="#FFC800" stroke="#E0AC00" stroke-width="1"/></svg>
+      <svg class="end-star empty" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9" fill="#FFC800" stroke="#E0AC00" stroke-width="1"/></svg>
+      <svg class="end-star empty" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9" fill="#FFC800" stroke="#E0AC00" stroke-width="1"/></svg>
+    </div>
+    <div class="end-verdict" id="end-verdict">太棒了!</div>
+    <div class="end-score-big" id="end-score">0</div>
+    <div class="end-score-label">总得分</div>
+    <div class="end-stats">
+      <div class="end-stat">
+        <div class="end-stat-num green" id="stat-correct">0</div>
+        <div class="end-stat-label">答对</div>
+      </div>
+      <div class="end-stat">
+        <div class="end-stat-num orange" id="stat-combo">0</div>
+        <div class="end-stat-label">最高连击</div>
+      </div>
+      <div class="end-stat">
+        <div class="end-stat-num" id="stat-accuracy">0%</div>
+        <div class="end-stat-label">准确率</div>
+      </div>
+    </div>
+    <div class="end-tip" id="end-tip">再来一局看看能不能拿 3 星!</div>
+    <div class="end-btn-row">
+      <button class="btn-primary" onclick="restartGame()">再来一局</button>
+      <button class="btn-secondary" onclick="backToStart()">返回首页</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════
+// V3: 26 字母通用版
+// 单一会话：3 分钟（180 秒）一局
+// 字母池：A-Z 全 26 字母，重点字母 ×2.5 加权
+// 目标轮换：26 字母全覆盖，重点字母优先级 ×2
+// ════════════════════════════════════════
+
+const SESSION_DURATION = 180; // 3 分钟
+
+// ————————————————————————————————————————
+// 改动点 ②：字母池 A-Z，重点字母 b/d/p/q/l/I ×2.5
+// 实现：重点字母各出现 5 次，其他字母各出现 2 次
+// 重点 6 × 5 = 30；其他 20 × 2 = 40；总 70 个槽
+// 比值 = 5/2 = 2.5 ✓
+// ————————————————————————————————————————
+const FOCUS_LETTERS = ['b','d','p','q','l','I'];
+const OTHER_LETTERS = ['a','c','e','f','g','h','i','j','k','m','n','o','r','s','t','u','v','w','x','y','z'];
+
+// 加权下落字母池（重点字母重复 5 次，其他 2 次）
+const LETTER_POOL = [
+  ...FOCUS_LETTERS.flatMap(ch => Array(5).fill(ch)),  // b×5, d×5, p×5, q×5, l×5, I×5
+  ...OTHER_LETTERS.flatMap(ch => Array(2).fill(ch)),   // 其他每个×2
+];
+// 共 30 + 42 = 72 个槽，重点/其他比 = 5/2 = 2.5 ✓
+
+// ————————————————————————————————————————
+// 改动点 ③：目标字母轮换池，重点字母 ×2
+// 重点 6 × 2 = 12；其他 20 × 1 = 20；总 32 个槽
+// ————————————————————————————————————————
+const TARGET_POOL = [
+  ...FOCUS_LETTERS.flatMap(ch => Array(2).fill(ch)),   // 重点×2
+  ...OTHER_LETTERS,                                     // 其他×1
+];
+// 共 12 + 21 = 33 个槽（'a' 已在 OTHER_LETTERS）
+
+const TARGET_SWITCH_SEC_MIN = 10;
+const TARGET_SWITCH_SEC_MAX = 12;
+
+// 难度梯度（单局内时间渐进）
+// elapsed: 0-30s   慢：落速 4000ms，同屏 3 个，生成间隔 1100ms
+// elapsed: 30-90s  中：落速 3000ms，同屏 4-5 个，生成间隔 900ms
+// elapsed: 90-150s 快：落速 2500ms，同屏 5-6 个，生成间隔 760ms
+// elapsed: 150-180s 极速：落速 2000ms，同屏 6-8 个，生成间隔 600ms
+function getDifficulty(elapsed) {
+  if (elapsed < 30)  return { fallDuration: 4000, maxOnScreen: 3, spawnInterval: 1100, targetBias: 0.40 };
+  if (elapsed < 90)  return { fallDuration: 3000, maxOnScreen: 5, spawnInterval: 900,  targetBias: 0.38 };
+  if (elapsed < 150) return { fallDuration: 2500, maxOnScreen: 6, spawnInterval: 760,  targetBias: 0.35 };
+  return              { fallDuration: 2000, maxOnScreen: 8, spawnInterval: 600,  targetBias: 0.32 };
+}
+
+// 多邻国配色字母 chip 色板
+const CHIP_COLORS = [
+  '#1CB0F6',  // duo blue
+  '#FF9600',  // duo orange
+  '#CE82FF',  // duo purple
+  '#FFC800',  // duo yellow
+  '#FF4B4B',  // duo red soft
+  '#58CC02',  // duo green
+];
+
+// 鼓励语池
+const CHEERS = ['对啦!','太棒了!','厉害!','Great!','Bingo!','准!'];
+const MISS_HINTS = ['再试试','看仔细哦','别急','慢慢来'];
+
+// ════════════════════════════════════════
+// 全局状态
+// ════════════════════════════════════════
+const state = {
+  score: 0,
+  totalCorrect: 0,
+  totalMistakes: 0,
+  totalTargetSeen: 0,
+  combo: 0,
+  maxCombo: 0,
+  currentTarget: 'b',
+  running: false,
+  paused: false,
+  elapsed: 0,            // 已过秒数
+  activeLetters: [],
+  timers: { tick: null, spawn: null, target: null },
+  spawnInterval: 1100,   // 当前生成间隔（动态更新）
+};
+
+// ════════════════════════════════════════
+// 音频系统
+// ════════════════════════════════════════
+const audioCache = {};
+let audioCtx = null;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function preloadAudio() {
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(ch => {
+    const a = new Audio('audio/' + ch + '.mp3');
+    a.preload = 'auto';
+    a.load();
+    audioCache[ch] = a;
+  });
+}
+
+function playLetterAudio(ch) {
+  const key = ch.toUpperCase();
+  const cached = audioCache[key];
+  if (!cached) return;
+  const a = cached.cloneNode();
+  a.volume = 0.95;
+  a.play().catch(()=>{});
+  a.onended = () => a.remove();
+}
+
+// Web Audio API 即时合成"叮""嘟"
+function playTone(type) {
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  if (type === 'ding') {
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, now);
+    o.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.22, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    o.start(now); o.stop(now + 0.2);
+  } else if (type === 'du') {
+    o.type = 'sine';
+    o.frequency.setValueAtTime(280, now);
+    o.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    o.start(now); o.stop(now + 0.2);
+  } else if (type === 'star') {
+    [880, 1320, 1760].forEach((f, i) => {
+      const oo = ctx.createOscillator();
+      const gg = ctx.createGain();
+      oo.connect(gg); gg.connect(ctx.destination);
+      oo.type = 'sine';
+      oo.frequency.setValueAtTime(f, now + i * 0.15);
+      gg.gain.setValueAtTime(0.001, now + i * 0.15);
+      gg.gain.exponentialRampToValueAtTime(0.2, now + i * 0.15 + 0.01);
+      gg.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.25);
+      oo.start(now + i * 0.15); oo.stop(now + i * 0.15 + 0.3);
+    });
+  } else if (type === 'count') {
+    o.type = 'square';
+    o.frequency.setValueAtTime(440, now);
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    o.start(now); o.stop(now + 0.15);
+  }
+}
+
+// ════════════════════════════════════════
+// 屏幕切换
+// ════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ════════════════════════════════════════
+// 教学引导（localStorage 记录首次）
+// ════════════════════════════════════════
+function isFirstTime() {
+  try {
+    return !localStorage.getItem('letterAdventureV3_tutorialDone');
+  } catch(e) { return false; }
+}
+function markTutorialDone() {
+  try { localStorage.setItem('letterAdventureV3_tutorialDone', '1'); } catch(e) {}
+}
+function showTutorial() {
+  // 教学引导的 demo 字母用当前目标
+  document.getElementById('tutor-demo').textContent = state.currentTarget;
+  document.getElementById('tutor-target-hint-letter').textContent = state.currentTarget;
+  document.getElementById('tutorial-overlay').classList.add('active');
+}
+function hideTutorial() {
+  document.getElementById('tutorial-overlay').classList.remove('active');
+}
+function onTutorDemo() {
+  ensureAudioCtx();
+  playTone('ding');
+  playLetterAudio(state.currentTarget);
+  const demo = document.getElementById('tutor-demo');
+  demo.style.animation = 'none';
+  demo.offsetHeight;
+  demo.style.animation = 'letter-pop 0.5s cubic-bezier(.34,1.8,.64,1) forwards';
+  markTutorialDone();
+  setTimeout(() => {
+    hideTutorial();
+    beginCountdown();
+  }, 600);
+}
+
+// ════════════════════════════════════════
+// 启动按钮
+// ════════════════════════════════════════
+function onStartClick() {
+  ensureAudioCtx();
+  // 重置状态
+  state.score = 0;
+  state.totalCorrect = 0;
+  state.totalMistakes = 0;
+  state.totalTargetSeen = 0;
+  state.combo = 0;
+  state.maxCombo = 0;
+  state.elapsed = 0;
+
+  // 初始目标从 TARGET_POOL 随机抽
+  state.currentTarget = pickWeighted(TARGET_POOL);
+  updateTargetDisplay();
+
+  showScreen('screen-game');
+  updateHUD();
+  updateTimerBadge();
+  updateProgress(0);
+
+  if (isFirstTime()) {
+    showTutorial();
+  } else {
+    beginCountdown();
+  }
+}
+
+// ════════════════════════════════════════
+// 3-2-1-GO 倒计时
+// ════════════════════════════════════════
+function beginCountdown() {
+  const overlay = document.getElementById('countdown-overlay');
+  const num = document.getElementById('countdown-num');
+  overlay.classList.add('active');
+  const seq = ['3','2','1','GO!'];
+  let i = 0;
+  function step() {
+    num.textContent = seq[i];
+    num.className = 'countdown-num' + (seq[i] === 'GO!' ? ' go' : '');
+    num.style.animation = 'none';
+    num.offsetHeight;
+    num.style.animation = 'count-pop 0.85s cubic-bezier(.34,1.56,.64,1) forwards';
+    playTone(seq[i] === 'GO!' ? 'ding' : 'count');
+    i++;
+    if (i < seq.length) {
+      setTimeout(step, 800);
+    } else {
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        beginSession();
+      }, 600);
+    }
+  }
+  step();
+}
+
+// ════════════════════════════════════════
+// 改动点 ①：单一会话（取代关卡系统）
+// ════════════════════════════════════════
+function beginSession() {
+  state.elapsed = 0;
+  state.running = true;
+
+  setTimeout(() => playLetterAudio(state.currentTarget), 300);
+  updateProgress(0);
+
+  // 主计时器：每秒更新
+  state.timers.tick = setInterval(() => {
+    if (!state.running) return;
+    state.elapsed++;
+    updateTimerBadge();
+    updateProgress(state.elapsed);
+
+    // 难度梯度变化时重新调度 spawn
+    const diff = getDifficulty(state.elapsed);
+    if (diff.spawnInterval !== state.spawnInterval) {
+      state.spawnInterval = diff.spawnInterval;
+      // 下次 spawn 循环会自动用新间隔
+    }
+
+    if (state.elapsed >= SESSION_DURATION) {
+      endGame();
+    }
+  }, 1000);
+
+  // 字母生成（动态间隔）
+  scheduleSpawn();
+
+  // 目标切换（每 10-12 秒随机换）
+  function scheduleTargetSwitch() {
+    if (!state.running) return;
+    const delay = (TARGET_SWITCH_SEC_MIN + Math.random() * (TARGET_SWITCH_SEC_MAX - TARGET_SWITCH_SEC_MIN)) * 1000;
+    state.timers.target = setTimeout(() => {
+      if (!state.running) return;
+      switchTarget();
+      scheduleTargetSwitch();
+    }, delay);
+  }
+  scheduleTargetSwitch();
+}
+
+function scheduleSpawn() {
+  state.timers.spawn = setTimeout(function loop() {
+    if (!state.running) return;
+    spawnLetter();
+    const diff = getDifficulty(state.elapsed);
+    state.timers.spawn = setTimeout(loop, diff.spawnInterval);
+  }, getDifficulty(state.elapsed).spawnInterval);
+}
+
+function stopSessionTimers() {
+  clearInterval(state.timers.tick);
+  clearTimeout(state.timers.spawn);
+  clearTimeout(state.timers.target);
+}
+
+// ════════════════════════════════════════
+// 字母生成（使用 LETTER_POOL 加权池）
+// ════════════════════════════════════════
+function spawnLetter() {
+  if (!state.running) return;
+  const arena = document.getElementById('game-arena');
+  const diff = getDifficulty(state.elapsed);
+  if (state.activeLetters.length >= diff.maxOnScreen) return;
+
+  let ch;
+  if (Math.random() < diff.targetBias) {
+    ch = state.currentTarget;
+  } else {
+    ch = pickWeighted(LETTER_POOL);
+  }
+
+  const el = document.createElement('div');
+  el.className = 'falling-letter';
+
+  const color = CHIP_COLORS[Math.floor(Math.random() * CHIP_COLORS.length)];
+  const tilt = (Math.random() * 6 - 3).toFixed(1);
+  const xPercent = Math.random() * 78 + 5;
+  const swayAmp = (Math.random() * 14 + 6).toFixed(1);
+  const swayPhase = Math.random() * Math.PI * 2;
+
+  el.style.cssText = `
+    background: ${color};
+    left: ${xPercent}%;
+    top: -90px;
+    --tilt: ${tilt}deg;
+    transform: rotate(${tilt}deg);
+    z-index: 10;
+  `;
+  el.textContent = ch;
+
+  el.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    onLetterTap(el, ch);
+  });
+
+  arena.appendChild(el);
+
+  if (ch === state.currentTarget) state.totalTargetSeen++;
+
+  const startTime = performance.now();
+  const duration = diff.fallDuration;
+  const arenaRect = arena.getBoundingClientRect();
+  const targetTop = arenaRect.height + 80;
+  const startTop = -90;
+  el._anim = { startTime, duration, startTop, targetTop, xPercent, swayAmp, swayPhase, tilt };
+
+  function tick() {
+    if (!el.parentNode || el.dataset.handled) return;
+    const now = performance.now();
+    const t = (now - el._anim.startTime) / el._anim.duration;
+    if (t >= 1) {
+      cleanupLetter(el);
+      return;
+    }
+    const top = el._anim.startTop + (el._anim.targetTop - el._anim.startTop) * t;
+    const sway = Math.sin(el._anim.swayPhase + t * Math.PI * 2.2) * el._anim.swayAmp;
+    el.style.top = top + 'px';
+    el.style.left = `calc(${el._anim.xPercent}% + ${sway}px)`;
+    el._raf = requestAnimationFrame(tick);
+  }
+  el._raf = requestAnimationFrame(tick);
+
+  state.activeLetters.push(el);
+}
+
+function cleanupLetter(el) {
+  if (el._raf) cancelAnimationFrame(el._raf);
+  if (el.parentNode) el.parentNode.removeChild(el);
+  const idx = state.activeLetters.indexOf(el);
+  if (idx !== -1) state.activeLetters.splice(idx, 1);
+}
+
+function clearAllLetters() {
+  state.activeLetters.slice().forEach(cleanupLetter);
+  const arena = document.getElementById('game-arena');
+  arena.querySelectorAll('.floaty-score, .particle, .cheer-text, .miss-hint').forEach(e => e.remove());
+}
+
+// 加权随机抽取
+function pickWeighted(pool) {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ════════════════════════════════════════
+// 点击判定
+// ════════════════════════════════════════
+function onLetterTap(el, ch) {
+  if (!state.running) return;
+  if (el.dataset.handled) return;
+  el.dataset.handled = '1';
+
+  if (ch === state.currentTarget) {
+    // —— 答对 ——
+    state.score += 10;
+    state.totalCorrect++;
+    state.combo++;
+    if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+    updateHUD();
+
+    if (el._raf) cancelAnimationFrame(el._raf);
+    el.style.transition = 'none';
+    el.classList.add('hit');
+
+    playTone('ding');
+    playLetterAudio(ch);
+
+    spawnFloatyScore(el, '+10');
+    spawnParticles(el);
+    showRandomCheer();
+
+    // combo 里程碑
+    if (state.combo === 5)  showComboCheer('5 连击!太厉害了!', false);
+    if (state.combo === 10) showComboCheer('10 连击!神!', true);
+    if (state.combo === 15) showComboCheer('15 连击!传说!', true);
+
+    setTimeout(() => cleanupLetter(el), 470);
+  } else {
+    // —— 答错（温柔）——
+    state.totalMistakes++;
+    state.combo = 0;
+    updateHUD();
+
+    el.classList.add('miss-shake');
+    playTone('du');
+    showMissHint();
+    setTimeout(() => {
+      el.classList.remove('miss-shake');
+      el.dataset.handled = '';
+    }, 320);
+  }
+}
+
+// ════════════════════════════════════════
+// HUD 更新
+// ════════════════════════════════════════
+function updateHUD() {
+  document.getElementById('score-display').textContent = state.score;
+  const cd = document.getElementById('combo-display');
+  const cn = document.getElementById('combo-num');
+  if (state.combo >= 2) {
+    cd.classList.add('visible');
+    cn.textContent = 'x' + state.combo;
+    if (state.combo >= 5) cd.classList.add('big');
+    else cd.classList.remove('big');
+  } else {
+    cd.classList.remove('visible', 'big');
+  }
+}
+
+// V3: 显示倒计时 mm:ss
+function updateTimerBadge() {
+  const remaining = Math.max(0, SESSION_DURATION - state.elapsed);
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  const badge = document.getElementById('timer-badge');
+  badge.textContent = m + ':' + String(s).padStart(2, '0');
+  badge.classList.remove('warn', 'danger');
+  if (remaining <= 30) badge.classList.add('danger');
+  else if (remaining <= 60) badge.classList.add('warn');
+}
+
+// V3: 进度条从 100% 缩减到 0（时间耗尽）
+function updateProgress(elapsed) {
+  const pct = Math.max(0, 100 - (elapsed / SESSION_DURATION) * 100);
+  const fill = document.getElementById('progress-fill');
+  fill.style.width = pct + '%';
+  fill.classList.remove('warn', 'danger');
+  if (pct <= 20) fill.classList.add('danger');
+  else if (pct <= 40) fill.classList.add('warn');
+}
+
+function updateTargetDisplay() {
+  const el = document.getElementById('target-letter');
+  el.textContent = state.currentTarget;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 300);
+}
+
+// 改动点 ③：目标字母从 TARGET_POOL 加权轮换
+function switchTarget() {
+  let next;
+  do {
+    next = pickWeighted(TARGET_POOL);
+  } while (next === state.currentTarget && TARGET_POOL.length > 1);
+  state.currentTarget = next;
+  updateTargetDisplay();
+  setTimeout(() => playLetterAudio(next), 220);
+}
+
+function playTargetSound() {
+  ensureAudioCtx();
+  playLetterAudio(state.currentTarget);
+}
+
+// ════════════════════════════════════════
+// 视觉反馈：粒子 / 飘字 / 鼓励语 / 错误提示
+// ════════════════════════════════════════
+function spawnFloatyScore(el, txt) {
+  const arena = document.getElementById('game-arena');
+  const rect = el.getBoundingClientRect();
+  const arenaRect = arena.getBoundingClientRect();
+  const x = rect.left - arenaRect.left + rect.width / 2;
+  const y = rect.top - arenaRect.top + rect.height / 2;
+
+  const f = document.createElement('div');
+  f.className = 'floaty-score';
+  f.textContent = txt;
+  f.style.left = x + 'px';
+  f.style.top  = y + 'px';
+  arena.appendChild(f);
+  f.addEventListener('animationend', () => f.remove());
+}
+
+const PARTICLE_COLORS = ['#FF4B4B','#FFC800','#58CC02','#1CB0F6','#CE82FF','#FF9600','#FFC800'];
+function spawnParticles(el) {
+  const arena = document.getElementById('game-arena');
+  const rect = el.getBoundingClientRect();
+  const arenaRect = arena.getBoundingClientRect();
+  const cx = rect.left - arenaRect.left + rect.width / 2;
+  const cy = rect.top - arenaRect.top + rect.height / 2;
+
+  const N = 8;
+  for (let i = 0; i < N; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (i / N) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = 40 + Math.random() * 50;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const color = PARTICLE_COLORS[i % PARTICLE_COLORS.length];
+    p.style.cssText = `
+      left: ${cx}px; top: ${cy}px;
+      background: ${color}; color: ${color};
+      opacity: 1;
+      transition: transform 0.55s cubic-bezier(.17,.67,.44,1.1), opacity 0.55s;
+      transform: translate(-50%, -50%);
+    `;
+    arena.appendChild(p);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        p.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        p.style.opacity = '0';
+      });
+    });
+    setTimeout(() => p.remove(), 600);
+  }
+}
+
+function showRandomCheer() {
+  if (state.combo >= 5) return;
+  const arena = document.getElementById('game-arena');
+  const c = document.createElement('div');
+  c.className = 'cheer-text';
+  c.textContent = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+  arena.appendChild(c);
+  setTimeout(() => c.remove(), 900);
+}
+
+function showComboCheer(txt, big) {
+  const arena = document.getElementById('game-arena');
+  const c = document.createElement('div');
+  c.className = 'cheer-text combo' + (big ? ' combo-big' : '');
+  c.textContent = txt;
+  arena.appendChild(c);
+  if (big) playTone('star'); else playTone('ding');
+  setTimeout(() => c.remove(), 900);
+}
+
+function showMissHint() {
+  const arena = document.getElementById('game-arena');
+  arena.querySelectorAll('.miss-hint').forEach(e => e.remove());
+  const h = document.createElement('div');
+  h.className = 'miss-hint';
+  h.textContent = MISS_HINTS[Math.floor(Math.random() * MISS_HINTS.length)];
+  arena.appendChild(h);
+  setTimeout(() => h.remove(), 1150);
+}
+
+// ════════════════════════════════════════
+// 结束游戏
+// ════════════════════════════════════════
+function endGame() {
+  state.running = false;
+  stopSessionTimers();
+  clearAllLetters();
+
+  const total = state.totalCorrect + state.totalMistakes;
+  const accuracy = total > 0 ? Math.round((state.totalCorrect / total) * 100) : 0;
+
+  document.getElementById('end-score').textContent = state.score;
+  document.getElementById('stat-correct').textContent = state.totalCorrect;
+  document.getElementById('stat-combo').textContent = state.maxCombo;
+  const accEl = document.getElementById('stat-accuracy');
+  accEl.textContent = accuracy + '%';
+  accEl.className = 'end-stat-num ' + (accuracy >= 80 ? 'green' : accuracy >= 60 ? 'orange' : 'red');
+
+  // 星星（3 分钟单局，标准适当调高）
+  let stars = 1;
+  if (accuracy >= 85 && state.maxCombo >= 10) stars = 3;
+  else if (accuracy >= 65) stars = 2;
+
+  // 评语
+  let verdict, tip;
+  if (stars === 3) {
+    verdict = pickRandom(['字母大师!','完美!','神操作!']);
+    tip = '26 个字母全掌握！b/d/p/q 完全分清啦~';
+  } else if (stars === 2) {
+    verdict = pickRandom(['太棒了!','厉害!','很不错!']);
+    tip = '再玩一局,3 星就到手了!';
+  } else {
+    verdict = pickRandom(['继续加油!','再来一次!','别灰心!']);
+    tip = '记住:b 朝右肚,d 朝左肚;p 朝下,q 朝下反~';
+  }
+  document.getElementById('end-verdict').textContent = verdict;
+  document.getElementById('end-tip').textContent = tip;
+
+  // 重置星星显示
+  const starEls = document.querySelectorAll('#end-stars-row .end-star');
+  starEls.forEach(s => { s.classList.remove('show'); s.classList.add('empty'); });
+
+  showScreen('screen-end');
+
+  // 依次点亮
+  setTimeout(() => {
+    for (let i = 0; i < stars; i++) {
+      setTimeout(() => {
+        starEls[i].classList.remove('empty');
+        starEls[i].classList.add('show');
+        playTone('star');
+      }, i * 350);
+    }
+  }, 350);
+}
+
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function restartGame() {
+  ensureAudioCtx();
+  onStartClick();
+}
+function backToStart() {
+  state.running = false;
+  stopSessionTimers();
+  clearAllLetters();
+  showScreen('screen-start');
+}
+
+// ════════════════════════════════════════
+// 初始化
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  preloadAudio();
+  showScreen('screen-start');
+});
+document.addEventListener('pointerdown', () => ensureAudioCtx(), { once: true });
+</script>
+</body>
+</html>
